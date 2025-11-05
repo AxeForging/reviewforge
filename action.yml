@@ -43,13 +43,16 @@ inputs:
     description: "Additional context about the project for the AI"
     required: false
   PERSONA:
-    description: "Reviewer persona: bob, robert, or leave empty for default expert reviewer"
+    description: "Reviewer persona: bob, robert, maya, eli, or leave empty for default expert reviewer"
     required: false
   CUSTOM_PERSONA:
     description: 'Custom persona JSON: {"name":"...","prompt":"..."}'
     required: false
   CUSTOM_PERSONA_FILE:
     description: "Path to custom persona JSON file"
+    required: false
+  LANGUAGE:
+    description: "Language for review comments and summary (e.g. Portuguese, Spanish, French)"
     required: false
 runs:
   using: "docker"

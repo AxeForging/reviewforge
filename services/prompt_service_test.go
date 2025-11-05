@@ -11,7 +11,7 @@ func TestPromptService_BuildSystemPrompt(t *testing.T) {
 	svc := &PromptService{}
 
 	t.Run("base prompt without update or persona", func(t *testing.T) {
-		prompt := svc.BuildSystemPrompt(false, "")
+		prompt := svc.BuildSystemPrompt(PromptOptions{})
 		if !strings.Contains(prompt, "expert code reviewer") {
 			t.Error("should contain base reviewer prompt")
 		}
@@ -24,14 +24,14 @@ func TestPromptService_BuildSystemPrompt(t *testing.T) {
 	})
 
 	t.Run("with update prompt", func(t *testing.T) {
-		prompt := svc.BuildSystemPrompt(true, "")
+		prompt := svc.BuildSystemPrompt(PromptOptions{IsUpdate: true})
 		if !strings.Contains(prompt, "updates to a PR") {
 			t.Error("should contain update prompt")
 		}
 	})
 
 	t.Run("with persona prompt", func(t *testing.T) {
-		prompt := svc.BuildSystemPrompt(false, "Be friendly and encouraging.")
+		prompt := svc.BuildSystemPrompt(PromptOptions{PersonaPrompt: "Be friendly and encouraging."})
 		if !strings.Contains(prompt, "Persona Instructions") {
 			t.Error("should contain persona section header")
 		}
@@ -41,12 +41,65 @@ func TestPromptService_BuildSystemPrompt(t *testing.T) {
 	})
 
 	t.Run("with both update and persona", func(t *testing.T) {
-		prompt := svc.BuildSystemPrompt(true, "Be nerdy.")
+		prompt := svc.BuildSystemPrompt(PromptOptions{IsUpdate: true, PersonaPrompt: "Be nerdy."})
 		if !strings.Contains(prompt, "updates to a PR") {
 			t.Error("should contain update prompt")
 		}
 		if !strings.Contains(prompt, "Be nerdy.") {
 			t.Error("should contain persona prompt")
+		}
+	})
+
+	t.Run("with language", func(t *testing.T) {
+		prompt := svc.BuildSystemPrompt(PromptOptions{Language: "Portuguese"})
+		if !strings.Contains(prompt, "Language Instructions") {
+			t.Error("should contain language section header")
+		}
+		if !strings.Contains(prompt, "Portuguese") {
+			t.Error("should contain language name")
+		}
+		if !strings.Contains(prompt, "JSON structure keys") {
+			t.Error("should instruct to keep JSON keys in English")
+		}
+	})
+
+	t.Run("with learning report", func(t *testing.T) {
+		prompt := svc.BuildSystemPrompt(PromptOptions{IncludeLearning: true})
+		if !strings.Contains(prompt, "Learning Report") {
+			t.Error("should contain learning section header")
+		}
+		if !strings.Contains(prompt, "techniques_spotted") {
+			t.Error("should instruct to include techniques")
+		}
+		if !strings.Contains(prompt, "what_went_well") {
+			t.Error("should instruct to include what went well")
+		}
+		if !strings.Contains(prompt, "areas_to_improve") {
+			t.Error("should instruct to include areas to improve")
+		}
+		if !strings.Contains(prompt, "key_takeaways") {
+			t.Error("should instruct to include key takeaways")
+		}
+	})
+
+	t.Run("all options combined", func(t *testing.T) {
+		prompt := svc.BuildSystemPrompt(PromptOptions{
+			IsUpdate:        true,
+			PersonaPrompt:   "Be kind.",
+			Language:        "Spanish",
+			IncludeLearning: true,
+		})
+		if !strings.Contains(prompt, "updates to a PR") {
+			t.Error("should contain update prompt")
+		}
+		if !strings.Contains(prompt, "Be kind.") {
+			t.Error("should contain persona")
+		}
+		if !strings.Contains(prompt, "Spanish") {
+			t.Error("should contain language")
+		}
+		if !strings.Contains(prompt, "techniques_spotted") {
+			t.Error("should contain learning section")
 		}
 	})
 }
@@ -143,6 +196,34 @@ func TestPromptService_ParseAIResponse(t *testing.T) {
 		}
 		if out.Comments[0].Severity != "suggestion" {
 			t.Errorf("Severity = %q, want suggestion", out.Comments[0].Severity)
+		}
+	})
+
+	t.Run("with learning section", func(t *testing.T) {
+		raw := `{
+			"summary": "Good PR",
+			"comments": [],
+			"suggestedAction": "approve",
+			"confidence": 90,
+			"learning": {
+				"techniques_spotted": ["Error wrapping", "Dependency injection"],
+				"what_went_well": ["Clean separation of concerns"],
+				"areas_to_improve": ["Add context.Context support"],
+				"key_takeaways": ["Always close response bodies"]
+			}
+		}`
+		out, err := svc.ParseAIResponse(raw)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if out.Learning == nil {
+			t.Fatal("Learning should not be nil")
+		}
+		if len(out.Learning.TechniquesSpotted) != 2 {
+			t.Errorf("TechniquesSpotted = %v", out.Learning.TechniquesSpotted)
+		}
+		if len(out.Learning.WhatWentWell) != 1 {
+			t.Errorf("WhatWentWell = %v", out.Learning.WhatWentWell)
 		}
 	})
 }

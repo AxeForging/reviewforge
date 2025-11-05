@@ -78,6 +78,8 @@ func TestCLI_Personas(t *testing.T) {
 	expected := []string{
 		"bob", "Bob Lil Swagger",
 		"robert", "Robert Dover Clow",
+		"maya", "Maya Simplifica",
+		"eli", "Eli Passo",
 		"--persona",
 	}
 	for _, s := range expected {
@@ -115,6 +117,8 @@ func TestCLI_ReviewHelp(t *testing.T) {
 		"--repo",
 		"--pr",
 		"--persona",
+		"--language",
+		"--save-report",
 		"--dry-run",
 		"--incremental",
 		"--max-comments",

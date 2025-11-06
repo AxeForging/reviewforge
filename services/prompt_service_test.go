@@ -82,12 +82,26 @@ func TestPromptService_BuildSystemPrompt(t *testing.T) {
 		}
 	})
 
+	t.Run("with strict changes", func(t *testing.T) {
+		prompt := svc.BuildSystemPrompt(PromptOptions{StrictChanges: true})
+		if !strings.Contains(prompt, "Strict Changes Mode") {
+			t.Error("should contain strict changes section header")
+		}
+		if !strings.Contains(prompt, "Syntax errors") {
+			t.Error("should mention syntax errors")
+		}
+		if !strings.Contains(prompt, "Degradation") {
+			t.Error("should mention degradation")
+		}
+	})
+
 	t.Run("all options combined", func(t *testing.T) {
 		prompt := svc.BuildSystemPrompt(PromptOptions{
 			IsUpdate:        true,
 			PersonaPrompt:   "Be kind.",
 			Language:        "Spanish",
 			IncludeLearning: true,
+			StrictChanges:   true,
 		})
 		if !strings.Contains(prompt, "updates to a PR") {
 			t.Error("should contain update prompt")
@@ -100,6 +114,9 @@ func TestPromptService_BuildSystemPrompt(t *testing.T) {
 		}
 		if !strings.Contains(prompt, "techniques_spotted") {
 			t.Error("should contain learning section")
+		}
+		if !strings.Contains(prompt, "Strict Changes Mode") {
+			t.Error("should contain strict changes section")
 		}
 	})
 }

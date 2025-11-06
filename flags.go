@@ -108,6 +108,12 @@ var customPersonaFileFlag = cli.StringFlag{
 	EnvVar: "INPUT_CUSTOM_PERSONA_FILE,CUSTOM_PERSONA_FILE",
 }
 
+var strictChangesFlag = cli.BoolFlag{
+	Name:   "strict-changes",
+	Usage:  "Only request changes for syntax errors or degradation of existing functionality",
+	EnvVar: "INPUT_STRICT_CHANGES,STRICT_CHANGES",
+}
+
 // Language flag
 var languageFlag = cli.StringFlag{
 	Name:   "language, l",
@@ -155,6 +161,7 @@ var reviewFlags = []cli.Flag{
 	customPersonaFileFlag,
 	languageFlag,
 	saveReportFlag,
+	strictChangesFlag,
 	dryRunFlag,
 	verboseFlag,
 }

@@ -119,6 +119,7 @@ func TestCLI_ReviewHelp(t *testing.T) {
 		"--persona",
 		"--language",
 		"--save-report",
+		"--strict-changes",
 		"--dry-run",
 		"--incremental",
 		"--max-comments",

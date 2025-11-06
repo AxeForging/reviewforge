@@ -279,6 +279,7 @@ Great for tracking developer growth, onboarding, and team learning.
 | `CUSTOM_PERSONA` | No | - | Custom persona JSON |
 | `CUSTOM_PERSONA_FILE` | No | - | Path to persona JSON file |
 | `LANGUAGE` | No | - | Review language (e.g. `pt-br`, `es`, `French`) |
+| `STRICT_CHANGES` | No | `false` | Only request changes for syntax errors or degradation |
 
 ### CLI Flags
 

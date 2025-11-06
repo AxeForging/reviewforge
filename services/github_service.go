@@ -241,26 +241,7 @@ func (s *GitHubService) postReview(prNumber int, body map[string]interface{}, co
 
 	// 422 often means line comments are invalid or event not allowed — retry with fallbacks
 	if status == http.StatusUnprocessableEntity {
-		// First fallback: remove line comments
-		if len(comments) > 0 {
-			log.Warn().Int("status", status).Msg("Review submission failed with comments, retrying without line comments")
-
-			summary := body["body"].(string)
-			body["body"] = summary + "\n\n> Note: Some line comments were omitted due to technical limitations."
-			body["comments"] = []map[string]interface{}{}
-
-			retryData, _ := json.Marshal(body)
-			respData, status, err = s.doRequest("POST", path, strings.NewReader(string(retryData)), "")
-			if err != nil {
-				return err
-			}
-			if status == http.StatusOK || status == http.StatusCreated {
-				log.Info().Msg("Review submitted without line comments")
-				return nil
-			}
-		}
-
-		// Second fallback: downgrade event to COMMENT (can't request_changes on own PR, etc.)
+		// First fallback: downgrade event to COMMENT (can't approve/request_changes on own PR)
 		if body["event"] != "COMMENT" {
 			log.Warn().Str("event", body["event"].(string)).Msg("Review submission failed, retrying with COMMENT event")
 			body["event"] = "COMMENT"
@@ -271,7 +252,24 @@ func (s *GitHubService) postReview(prNumber int, body map[string]interface{}, co
 				return err
 			}
 			if status == http.StatusOK || status == http.StatusCreated {
-				log.Info().Msg("Review submitted with COMMENT event")
+				log.Info().Int("comments", len(comments)).Msg("Review submitted with COMMENT event")
+				return nil
+			}
+		}
+
+		// Second fallback: remove line comments (invalid line numbers, etc.)
+		if len(comments) > 0 {
+			log.Warn().Int("status", status).Msg("Review submission still failing, retrying without line comments")
+
+			body["comments"] = []map[string]interface{}{}
+
+			retryData, _ := json.Marshal(body)
+			respData, status, err = s.doRequest("POST", path, strings.NewReader(string(retryData)), "")
+			if err != nil {
+				return err
+			}
+			if status == http.StatusOK || status == http.StatusCreated {
+				log.Info().Msg("Review submitted without line comments")
 				return nil
 			}
 		}

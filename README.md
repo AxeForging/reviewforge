@@ -260,32 +260,47 @@ Great for tracking developer growth, onboarding, and team learning.
 
 ## Review Rules
 
-Control what the AI comments on using built-in presets or custom rules.
+ReviewForge ships with default review rules (`concise`) that focus the AI on what matters:
+
+**Default rules (always active):**
+- Only comment on bugs, security vulnerabilities, performance issues, and breaking changes
+- Ignore variable naming, code style, minor optimizations, and linting issues
+- Prepend a warning emoji for critical issues only
+- If unsure, don't comment
 
 ### Built-in Presets
 
 | Preset | Focus |
 |--------|-------|
-| `concise` | Only bugs, security, performance, and breaking changes. Ignores style, naming, minor optimizations. |
+| `concise` | **(default)** Only bugs, security, performance, and breaking changes. Ignores style, naming, minor optimizations. |
 | `thorough` | Bugs, security, performance, error handling, resource leaks, concurrency, API design. Ignores pure style. |
-| _(empty)_ | Default expert reviewer behavior. |
+| `none` | Disables all review rules. The AI uses its own judgment with no constraints. |
 
 ```yaml
-# GitHub Action — use a preset
+# GitHub Action — switch to thorough preset
 - uses: AxeForging/reviewforge@v1
   with:
-    REVIEW_RULES: concise
+    REVIEW_RULES: thorough
+    # ...
+
+# GitHub Action — disable rules entirely
+- uses: AxeForging/reviewforge@v1
+  with:
+    REVIEW_RULES: none
     # ...
 ```
 
 ```bash
-# CLI — use a preset
-reviewforge review --review-rules concise ...
+# CLI — switch preset
+reviewforge review --review-rules thorough ...
+
+# CLI — disable rules
+reviewforge review --review-rules none ...
 ```
 
 ### Custom Rules
 
-Pass your own rules as text (inline or from file):
+Override the default rules with your own (inline text or from a file):
 
 ```yaml
 # GitHub Action — inline custom rules
@@ -306,7 +321,8 @@ reviewforge review --custom-rules-file ./my-rules.txt ...
 reviewforge review --custom-rules "Only comment on bugs and security issues" ...
 ```
 
-Custom rules override the `--review-rules` preset. You can combine them with personas and language.
+Priority: `--custom-rules-file` > `--custom-rules` > `--review-rules` preset > default (`concise`).
+Use `--review-rules none` to disable all rules. Custom rules can be combined with personas and language.
 
 ## Configuration
 
@@ -330,7 +346,7 @@ Custom rules override the `--review-rules` preset. You can combine them with per
 | `CUSTOM_PERSONA_FILE` | No | - | Path to persona JSON file |
 | `LANGUAGE` | No | - | Review language (e.g. `pt-br`, `es`, `French`) |
 | `STRICT_CHANGES` | No | `false` | Only request changes for syntax errors or degradation |
-| `REVIEW_RULES` | No | - | Comment rules preset: `concise`, `thorough` |
+| `REVIEW_RULES` | No | `concise` | Comment rules preset: `concise`, `thorough`, `none` |
 | `CUSTOM_RULES` | No | - | Custom review rules text (what to comment on / ignore) |
 | `CUSTOM_RULES_FILE` | No | - | Path to a file with custom review rules |
 

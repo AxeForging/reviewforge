@@ -32,6 +32,11 @@ type ReviewConfig struct {
 	// Verdict behavior
 	StrictChanges bool `json:"strict_changes"`
 
+	// Review rules
+	ReviewRules     string `json:"review_rules"`
+	CustomRules     string `json:"custom_rules"`
+	CustomRulesFile string `json:"custom_rules_file"`
+
 	// Report
 	SaveReport string `json:"save_report"`
 

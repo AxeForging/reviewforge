@@ -55,6 +55,15 @@ inputs:
     description: "Only request changes for syntax errors or degradation of existing functionality"
     required: false
     default: "false"
+  REVIEW_RULES:
+    description: "Built-in comment rules preset: concise, thorough"
+    required: false
+  CUSTOM_RULES:
+    description: "Custom review rules text (what to comment on, what to ignore)"
+    required: false
+  CUSTOM_RULES_FILE:
+    description: "Path to a file containing custom review rules"
+    required: false
   LANGUAGE:
     description: "Language for review comments and summary (e.g. pt-br, es, fr)"
     required: false

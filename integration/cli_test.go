@@ -120,6 +120,8 @@ func TestCLI_ReviewHelp(t *testing.T) {
 		"--language",
 		"--save-report",
 		"--strict-changes",
+		"--review-rules",
+		"--custom-rules",
 		"--dry-run",
 		"--incremental",
 		"--max-comments",

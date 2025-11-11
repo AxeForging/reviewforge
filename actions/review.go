@@ -136,12 +136,14 @@ func (a *ReviewAction) Execute(c *cli.Context) error {
 
 	// Build prompts
 	personaPrompt := a.PersonaService.GetPersonaPrompt(config)
+	reviewRules := services.ResolveReviewRules(config.ReviewRules, config.CustomRules, config.CustomRulesFile)
 	systemPrompt := a.PromptService.BuildSystemPrompt(services.PromptOptions{
 		IsUpdate:        isUpdate,
 		PersonaPrompt:   personaPrompt,
 		Language:        config.Language,
 		IncludeLearning: config.SaveReport != "",
 		StrictChanges:   config.StrictChanges,
+		ReviewRules:     reviewRules,
 	})
 	userPrompt := a.PromptService.BuildUserPrompt(reviewReq)
 
@@ -247,6 +249,9 @@ func (a *ReviewAction) resolveConfig(c *cli.Context) domain.ReviewConfig {
 		CustomPersonaFile: c.String("custom-persona-file"),
 		Language:          c.String("language"),
 		StrictChanges:     c.Bool("strict-changes"),
+		ReviewRules:       c.String("review-rules"),
+		CustomRules:       c.String("custom-rules"),
+		CustomRulesFile:   c.String("custom-rules-file"),
 		SaveReport:        c.String("save-report"),
 		DryRun:            c.Bool("dry-run"),
 		Verbose:           c.Bool("verbose"),

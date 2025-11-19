@@ -41,8 +41,9 @@ type ReviewConfig struct {
 	SaveReport string `json:"save_report"`
 
 	// Output
-	DryRun  bool `json:"dry_run"`
-	Verbose bool `json:"verbose"`
+	ShowTokenUsage bool `json:"show_token_usage"`
+	DryRun         bool `json:"dry_run"`
+	Verbose        bool `json:"verbose"`
 }
 
 // Persona represents a reviewer personality
@@ -96,6 +97,13 @@ type AIReviewOutput struct {
 	Learning        *LearningReport `json:"learning,omitempty"`
 }
 
+// TokenUsage holds information about the amount of tokens used in an API call
+type TokenUsage struct {
+	PromptTokens     int `json:"prompt_tokens"`
+	CompletionTokens int `json:"completion_tokens"`
+	TotalTokens      int `json:"total_tokens"`
+}
+
 // LearningReport contains insights for developer growth, included when --save-report is used
 type LearningReport struct {
 	TechniquesSpotted []string `json:"techniques_spotted"`
@@ -106,15 +114,16 @@ type LearningReport struct {
 
 // ReviewReport is the full saved report including metadata
 type ReviewReport struct {
-	Repo       string          `json:"repo"`
-	PRNumber   int             `json:"pr_number"`
-	PRTitle    string          `json:"pr_title"`
-	Provider   string          `json:"provider"`
-	Model      string          `json:"model"`
-	Persona    string          `json:"persona,omitempty"`
-	Language   string          `json:"language,omitempty"`
-	Review     AIReviewOutput  `json:"review"`
-	FilesReviewed []string     `json:"files_reviewed"`
+	Repo          string          `json:"repo"`
+	PRNumber      int             `json:"pr_number"`
+	PRTitle       string          `json:"pr_title"`
+	Provider      string          `json:"provider"`
+	Model         string          `json:"model"`
+	Persona       string          `json:"persona,omitempty"`
+	Language      string          `json:"language,omitempty"`
+	Review        AIReviewOutput  `json:"review"`
+	TokenUsage    *TokenUsage     `json:"token_usage,omitempty"`
+	FilesReviewed []string        `json:"files_reviewed"`
 }
 
 // ReviewRequest is what gets sent to the AI provider

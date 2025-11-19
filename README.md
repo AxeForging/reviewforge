@@ -78,6 +78,9 @@ on:
       exclude_patterns:
         type: string
         default: '**/*.lock,**/*.json,**/*.md'
+      show_token_usage:
+        type: boolean
+        default: false
     secrets:
       ai_api_key:
         required: true
@@ -103,6 +106,7 @@ jobs:
           LANGUAGE: ${{ inputs.language }}
           MAX_COMMENTS: ${{ inputs.max_comments }}
           EXCLUDE_PATTERNS: ${{ inputs.exclude_patterns }}
+          SHOW_TOKEN_USAGE: ${{ inputs.show_token_usage }}
 ```
 
 Then in each repo, just call it:
@@ -122,6 +126,7 @@ jobs:
       ai_model: gemini-2.5-flash
       persona: eli
       language: pt-br
+      show_token_usage: true
     secrets:
       ai_api_key: ${{ secrets.GEMINI_API_KEY }}
       github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -258,6 +263,14 @@ The report includes:
 
 Great for tracking developer growth, onboarding, and team learning.
 
+<details>
+<summary><b>Token Usage Tracking</b></summary>
+
+ReviewForge can optionally display the exact token usage breakdown (prompt tokens, completion tokens, and total tokens) from the AI provider in the review summary. 
+
+To enable this, pass the `--show-token-usage` CLI flag or set `SHOW_TOKEN_USAGE: true` in your GitHub Action configuration. This feature is disabled by default to save space in PR summaries.
+</details>
+
 ## Review Rules
 
 ReviewForge ships with default review rules (`concise`) that focus the AI on what matters:
@@ -349,6 +362,7 @@ Use `--review-rules none` to disable all rules. Custom rules can be combined wit
 | `REVIEW_RULES` | No | `concise` | Comment rules preset: `concise`, `thorough`, `none` |
 | `CUSTOM_RULES` | No | - | Custom review rules text (what to comment on / ignore) |
 | `CUSTOM_RULES_FILE` | No | - | Path to a file with custom review rules |
+| `SHOW_TOKEN_USAGE` | No | `false` | Append AI token usage metrics to the review summary |
 
 ### CLI Flags
 

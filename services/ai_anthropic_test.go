@@ -42,7 +42,7 @@ func TestAnthropicProvider_Review(t *testing.T) {
 		BaseURL: server.URL,
 	}
 
-	result, err := provider.Review("system prompt", "user prompt", 0.3)
+	result, _, err := provider.Review("system prompt", "user prompt", 0.3)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -70,7 +70,7 @@ func TestAnthropicProvider_Review_Error(t *testing.T) {
 		BaseURL: server.URL,
 	}
 
-	_, err := provider.Review("system", "user", 0)
+	_, _, err := provider.Review("system", "user", 0)
 	if err == nil {
 		t.Fatal("expected error")
 	}

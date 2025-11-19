@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/AxeForging/reviewforge/domain"
 	"github.com/AxeForging/reviewforge/helpers"
 	"github.com/rs/zerolog/log"
 )
@@ -21,7 +22,7 @@ type OpenAIProvider struct {
 
 func (p *OpenAIProvider) Name() string { return "openai" }
 
-func (p *OpenAIProvider) Review(systemPrompt, userPrompt string, temperature float64) (string, error) {
+func (p *OpenAIProvider) Review(systemPrompt, userPrompt string, temperature float64) (string, *domain.TokenUsage, error) {
 	baseURL := p.BaseURL
 	if baseURL == "" {
 		baseURL = "https://api.openai.com"
@@ -56,12 +57,12 @@ func (p *OpenAIProvider) Review(systemPrompt, userPrompt string, temperature flo
 
 	data, err := json.Marshal(body)
 	if err != nil {
-		return "", helpers.WrapError(err, "openai", "failed to marshal request")
+		return "", nil, helpers.WrapError(err, "openai", "failed to marshal request")
 	}
 
 	req, err := http.NewRequest("POST", baseURL+"/v1/chat/completions", bytes.NewReader(data))
 	if err != nil {
-		return "", helpers.WrapError(err, "openai", "failed to create request")
+		return "", nil, helpers.WrapError(err, "openai", "failed to create request")
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+p.APIKey)
@@ -70,17 +71,17 @@ func (p *OpenAIProvider) Review(systemPrompt, userPrompt string, temperature flo
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return "", helpers.WrapError(err, "openai", "request failed")
+		return "", nil, helpers.WrapError(err, "openai", "request failed")
 	}
 	defer resp.Body.Close()
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", helpers.WrapError(err, "openai", "failed to read response")
+		return "", nil, helpers.WrapError(err, "openai", "failed to read response")
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("%w: OpenAI returned %d: %s", helpers.ErrAIRequest, resp.StatusCode, string(respBody))
+		return "", nil, fmt.Errorf("%w: OpenAI returned %d: %s", helpers.ErrAIRequest, resp.StatusCode, string(respBody))
 	}
 
 	var result struct {
@@ -89,14 +90,25 @@ func (p *OpenAIProvider) Review(systemPrompt, userPrompt string, temperature flo
 				Content string `json:"content"`
 			} `json:"message"`
 		} `json:"choices"`
+		Usage struct {
+			PromptTokens     int `json:"prompt_tokens"`
+			CompletionTokens int `json:"completion_tokens"`
+			TotalTokens      int `json:"total_tokens"`
+		} `json:"usage"`
 	}
 	if err := json.Unmarshal(respBody, &result); err != nil {
-		return "", helpers.WrapError(err, "openai", "failed to parse response")
+		return "", nil, helpers.WrapError(err, "openai", "failed to parse response")
 	}
 
 	if len(result.Choices) == 0 {
-		return "", fmt.Errorf("%w: OpenAI returned no choices", helpers.ErrAIRequest)
+		return "", nil, fmt.Errorf("%w: OpenAI returned no choices", helpers.ErrAIRequest)
 	}
 
-	return result.Choices[0].Message.Content, nil
+	usage := &domain.TokenUsage{
+		PromptTokens:     result.Usage.PromptTokens,
+		CompletionTokens: result.Usage.CompletionTokens,
+		TotalTokens:      result.Usage.TotalTokens,
+	}
+
+	return result.Choices[0].Message.Content, usage, nil
 }

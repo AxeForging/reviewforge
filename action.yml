@@ -84,14 +84,16 @@ runs:
         if [[ "${{ runner.os }}" == "macOS" ]]; then OS="darwin"; fi
         if [[ "${{ runner.arch }}" == "ARM64" ]]; then ARCH="arm64"; fi
         
-        # Download the specific binary for this architecture
-        # Use github.action_ref if available (e.g. v1.4.0), otherwise fallback to latest
-        RELEASE_TAG="${{ github.action_ref }}"
-        if [ -z "$RELEASE_TAG" ] || [ "$RELEASE_TAG" == "main" ]; then
-          gh release download --repo AxeForging/reviewforge --pattern "reviewforge-${OS}-${ARCH}*" --output reviewforge_bin
-        else
-          gh release download "$RELEASE_TAG" --repo AxeForging/reviewforge --pattern "reviewforge-${OS}-${ARCH}*" --output reviewforge_bin
+        VERSION="${{ github.action_ref }}"
+        if [ -z "$VERSION" ] || [ "$VERSION" == "main" ]; then
+          VERSION="v1.4.0"
         fi
+
+        # Download and extract the specific binary (Public asset, no token needed)
+        URL="https://github.com/AxeForging/reviewforge/releases/download/${VERSION}/reviewforge-${OS}-${ARCH}.tar.gz"
+        echo "Downloading $URL..."
+        curl -sSL "$URL" | tar -xz
+        mv "reviewforge-${OS}-${ARCH}" reviewforge_bin
         chmod +x reviewforge_bin
 
     - name: Run ReviewForge

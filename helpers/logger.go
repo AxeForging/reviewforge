@@ -29,17 +29,3 @@ func SetupLogger(level string) {
 	// Set global logger
 	log.Logger = log.Output(consoleWriter)
 }
-
-// PrintBanner prints a nice ASCII banner for ReviewForge
-func PrintBanner() {
-	println(`
-  _____            _             ______                      
- |  __ \          (_)           |  ____|                     
- | |__) |_____   ___  _____      | |__ ___  _ __ __ _  ___ 
- |  _  // _ \ \ / / |/ _ \ \ /\ / /  __/ _ \| '__/ _' |/ _ \
- | | \ \  __/\ V /| |  __/\ V  V /| | | (_) | | | (_| |  __/
- |_|  \_\___| \_/ |_|\___| \_/\_/ |_|  \___/|_|  \__, |\___|
-                                                  __/ |     
-                                                 |___/      
-	`)
-}

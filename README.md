@@ -20,7 +20,7 @@ ReviewForge reviews GitHub pull requests using AI (OpenAI, Anthropic, or Gemini)
 - **File filtering**: Exclude files by glob patterns
 - **Context files**: Include project files (README, package.json) for better AI context
 - **Dry-run mode**: Test locally without posting to GitHub
-- **Docker-based GitHub Action**: No Node.js runtime needed, fast cold starts
+- **High-performance Composite Action**: Fast execution, downloads pre-built binaries
 - **Standalone CLI**: Run reviews from your terminal
 
 ## Quick Start (GitHub Action)
@@ -344,12 +344,12 @@ Use `--review-rules none` to disable all rules. Custom rules can be combined wit
 | Input | Required | Default | Description |
 |-------|----------|---------|-------------|
 | `GITHUB_TOKEN` | Yes | - | GitHub token for API access |
-| `AI_PROVIDER` | Yes | `openai` | AI provider: `openai`, `anthropic`, `gemini` |
-| `AI_MODEL` | Yes | `gpt-4` | Model name |
+| `AI_PROVIDER` | Yes | `gemini` | AI provider: `openai`, `anthropic`, `gemini` |
+| `AI_MODEL` | Yes | `gemini-2.5-flash` | Model name |
 | `AI_API_KEY` | Yes | - | API key for the provider |
 | `AI_TEMPERATURE` | No | `0` | Temperature (0-1) |
 | `APPROVE_REVIEWS` | No | `true` | Allow approve/request changes verdicts |
-| `MAX_COMMENTS` | No | `25` | Max line comments (0 = unlimited) |
+| `MAX_COMMENTS` | No | `5` | Max line comments (0 = unlimited) |
 | `INCREMENTAL` | No | `true` | Only review new changes |
 | `EXCLUDE_PATTERNS` | No | `**/*.lock,**/*.json,**/*.md` | Glob patterns to exclude |
 | `CONTEXT_FILES` | No | `package.json,README.md` | Files for AI context |

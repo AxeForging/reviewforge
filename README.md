@@ -345,7 +345,7 @@ Use `--review-rules none` to disable all rules. Custom rules can be combined wit
 |-------|----------|---------|-------------|
 | `GITHUB_TOKEN` | Yes | - | GitHub token for API access |
 | `AI_PROVIDER` | Yes | `gemini` | AI provider: `openai`, `anthropic`, `gemini` |
-| `AI_MODEL` | Yes | `gemini-2.5-flash` | Model name |
+| `AI_MODEL` | Yes | `gemini-3-flash-preview` | Model name |
 | `AI_API_KEY` | Yes | - | API key for the provider |
 | `AI_TEMPERATURE` | No | `0` | Temperature (0-1) |
 | `APPROVE_REVIEWS` | No | `true` | Allow approve/request changes verdicts |

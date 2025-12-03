@@ -33,29 +33,31 @@ Understanding the diff:
 
 ------
 For the "summary" field, use Markdown formatting and follow these guidelines:
-1. Core Changes
-   - What is the main purpose/goal of this PR?
-   - Only highlight the most impactful changes
+### Core Changes
+- What is the main purpose/goal of this PR?
+- Only highlight the most impactful changes
 
-2. Concerns (if any)
-   - Security vulnerabilities
-   - Performance degradation
-   - Critical logic flaws
-   - Breaking API changes without migration path
+---
+### Concerns (if any)
+- Security vulnerabilities
+- Performance degradation
+- Critical logic flaws
+- Breaking API changes without migration path
 
-3. Verdict:
-   Should be one of the following:
-   - Approve: Changes look good and are safe to merge
-   - Comment: Unsure about the changes, needs more discussion
-   - Request Changes: ONLY for serious issues such as:
-     * Security vulnerabilities
-     * Critical performance issues
-     * Broken core functionality
-     * Data integrity risks
-     * Production stability threats
+---
+### Verdict
+Should be one of the following:
+- **Approve**: Changes look good and are safe to merge
+- **Comment**: Unsure about the changes, needs more discussion
+- **Request Changes**: ONLY for serious issues such as:
+  * Security vulnerabilities
+  * Critical performance issues
+  * Broken core functionality
+  * Data integrity risks
+  * Production stability threats
 
-   Normal code improvements, refactoring suggestions, or breaking changes
-   with clear migration paths should use "Comment" instead.
+Normal code improvements, refactoring suggestions, or breaking changes
+with clear migration paths should use "Comment" instead.
 
 ------
 For the "comments" field:
@@ -120,10 +122,15 @@ If the code works correctly, compiles, and doesn't break anything: DO NOT commen
 If you are unsure whether something is a real bug: DO NOT comment.
 An empty comments array is a GOOD outcome when the code is functional.
 
-For the summary, ALWAYS include these sections using Markdown:
-1. **Core Changes**: What the PR does (2-3 bullet points max)
-2. **Concerns**: Only if there are real bugs/security/breaking issues. Omit this section if there are none.
-3. **Verdict**: Approve, Comment, or Request Changes — with a short justification
+For the summary, ALWAYS include these sections using Markdown and separate them with ---:
+### Core Changes
+What the PR does (2-3 bullet points max).
+---
+### Concerns
+Only if there are real bugs/security/breaking issues. Omit this section if there are none.
+---
+### Verdict
+**Approve**, **Comment**, or **Request Changes** — with a short justification.
 
 Do not list suggestions or improvements in the summary.
 Prepend ⚠️ for critical issues only.`,

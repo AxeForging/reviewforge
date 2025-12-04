@@ -1,7 +1,7 @@
 name: Self-Review
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, reopened]
     branches:
       - main
 
@@ -21,5 +21,6 @@ jobs:
           AI_MODEL: gemini-2.5-flash
           AI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           SHOW_TOKEN_USAGE: true
+          INCREMENTAL: false
           PERSONA: ""
           REVIEW_RULES: concise

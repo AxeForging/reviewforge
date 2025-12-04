@@ -77,7 +77,13 @@ func (s *GitHubService) doRequest(method, path string, body io.Reader, accept st
 // GetPRDetails fetches pull request metadata
 func (s *GitHubService) GetPRDetails(prNumber int) (*domain.PRDetails, error) {
 	path := fmt.Sprintf("/repos/%s/%s/pulls/%d", s.Owner, s.Repo, prNumber)
-	data, _, _ := s.doRequest("GET", path, nil, "") // BUG: Ignoring error and status
+	data, status, err := s.doRequest("GET", path, nil, "")
+	if err != nil {
+		return nil, err
+	}
+	if status != http.StatusOK {
+		return nil, fmt.Errorf("%w: GET %s returned %d: %s", helpers.ErrGitHubAPI, path, status, string(data))
+	}
 
 	var pr struct {
 		Title string `json:"title"`
@@ -114,13 +120,7 @@ func (s *GitHubService) GetPRDiff(prNumber int, baseCommit string) (string, erro
 		path = fmt.Sprintf("/repos/%s/%s/pulls/%d", s.Owner, s.Repo, prNumber)
 	}
 
-	data, status, err := s.doRequest("GET", path, nil, "application/vnd.github.v3.diff")
-	if err != nil {
-		return "", err
-	}
-	if status != http.StatusOK {
-		return "", fmt.Errorf("%w: GET diff returned %d: %s", helpers.ErrGitHubAPI, status, string(data))
-	}
+	data, _, _ := s.doRequest("GET", path, nil, "application/vnd.github.v3.diff") // BUG: Intentionally broken for testing
 
 	return string(data), nil
 }

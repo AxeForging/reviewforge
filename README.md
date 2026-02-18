@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="doc/banner.png" alt="ReviewForge" width="400">
+</div>
+
 # ReviewForge
 
 AI-powered code reviewer with personality — GitHub Action & CLI.

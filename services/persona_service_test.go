@@ -69,8 +69,8 @@ func TestPersonaService_GetPersona_Builtin(t *testing.T) {
 		if p.DisplayName != "Eli Passo" {
 			t.Errorf("DisplayName = %q", p.DisplayName)
 		}
-		if !strings.Contains(p.Prompt, "newcomer") {
-			t.Error("eli prompt should mention newcomers")
+		if !strings.Contains(p.Prompt, "NEVER call the developer a beginner") {
+			t.Error("eli prompt should instruct not to label developers")
 		}
 	})
 

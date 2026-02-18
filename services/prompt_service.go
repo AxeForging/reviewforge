@@ -95,10 +95,11 @@ When reviewing updates to a PR:
 
 // PromptOptions configures system prompt generation
 type PromptOptions struct {
-	IsUpdate      bool
-	PersonaPrompt string
-	Language      string
+	IsUpdate        bool
+	PersonaPrompt   string
+	Language        string
 	IncludeLearning bool
+	StrictChanges   bool
 }
 
 // BuildSystemPrompt constructs the system prompt for the AI, including persona, language, and learning sections
@@ -109,6 +110,19 @@ func (s *PromptService) BuildSystemPrompt(opts PromptOptions) string {
 	if opts.IsUpdate {
 		b.WriteString("\n")
 		b.WriteString(updateReviewPrompt)
+	}
+
+	if opts.StrictChanges {
+		b.WriteString("\n\n------\nStrict Changes Mode:\n")
+		b.WriteString(`IMPORTANT: You may ONLY use "request_changes" when the code has:
+- Syntax errors that will prevent compilation or execution
+- Degradation of existing functionality (breaking what already works)
+- Runtime errors that will crash the application
+
+For everything else — style, best practices, performance suggestions, missing tests,
+code smells, refactoring opportunities — use "comment" or "approve".
+Do NOT request changes for improvements, suggestions, or new patterns to adopt.
+Only block the PR if it genuinely breaks something.`)
 	}
 
 	if opts.PersonaPrompt != "" {

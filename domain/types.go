@@ -29,6 +29,9 @@ type ReviewConfig struct {
 	// Language
 	Language string `json:"language"`
 
+	// Verdict behavior
+	StrictChanges bool `json:"strict_changes"`
+
 	// Report
 	SaveReport string `json:"save_report"`
 

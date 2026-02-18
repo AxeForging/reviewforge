@@ -51,8 +51,12 @@ inputs:
   CUSTOM_PERSONA_FILE:
     description: "Path to custom persona JSON file"
     required: false
+  STRICT_CHANGES:
+    description: "Only request changes for syntax errors or degradation of existing functionality"
+    required: false
+    default: "false"
   LANGUAGE:
-    description: "Language for review comments and summary (e.g. Portuguese, Spanish, French)"
+    description: "Language for review comments and summary (e.g. pt-br, es, fr)"
     required: false
 runs:
   using: "docker"

@@ -141,6 +141,7 @@ func (a *ReviewAction) Execute(c *cli.Context) error {
 		PersonaPrompt:   personaPrompt,
 		Language:        config.Language,
 		IncludeLearning: config.SaveReport != "",
+		StrictChanges:   config.StrictChanges,
 	})
 	userPrompt := a.PromptService.BuildUserPrompt(reviewReq)
 
@@ -245,6 +246,7 @@ func (a *ReviewAction) resolveConfig(c *cli.Context) domain.ReviewConfig {
 		CustomPersona:     c.String("custom-persona"),
 		CustomPersonaFile: c.String("custom-persona-file"),
 		Language:          c.String("language"),
+		StrictChanges:     c.Bool("strict-changes"),
 		SaveReport:        c.String("save-report"),
 		DryRun:            c.Bool("dry-run"),
 		Verbose:           c.Bool("verbose"),

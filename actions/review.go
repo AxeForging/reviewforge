@@ -3,6 +3,7 @@ package actions
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/AxeForging/reviewforge/domain"
@@ -135,7 +136,12 @@ func (a *ReviewAction) Execute(c *cli.Context) error {
 
 	// Build prompts
 	personaPrompt := a.PersonaService.GetPersonaPrompt(config)
-	systemPrompt := a.PromptService.BuildSystemPrompt(isUpdate, personaPrompt)
+	systemPrompt := a.PromptService.BuildSystemPrompt(services.PromptOptions{
+		IsUpdate:        isUpdate,
+		PersonaPrompt:   personaPrompt,
+		Language:        config.Language,
+		IncludeLearning: config.SaveReport != "",
+	})
 	userPrompt := a.PromptService.BuildUserPrompt(reviewReq)
 
 	// Create AI provider (needs runtime API key)
@@ -171,6 +177,33 @@ func (a *ReviewAction) Execute(c *cli.Context) error {
 		Str("action", output.SuggestedAction).
 		Int("confidence", output.Confidence).
 		Msg("Review complete")
+
+	// Save report if requested
+	if config.SaveReport != "" {
+		fileNames := make([]string, len(files))
+		for i, f := range files {
+			fileNames[i] = f.Path
+		}
+
+		report := domain.ReviewReport{
+			Repo:          config.Repo,
+			PRNumber:      config.PRNumber,
+			PRTitle:       pr.Title,
+			Provider:      config.AIProvider,
+			Model:         config.AIModel,
+			Persona:       config.PersonaName,
+			Language:      config.Language,
+			Review:        *output,
+			FilesReviewed: fileNames,
+		}
+
+		reportData, _ := json.MarshalIndent(report, "", "  ")
+		if err := os.WriteFile(config.SaveReport, reportData, 0644); err != nil {
+			log.Warn().Err(err).Str("path", config.SaveReport).Msg("Failed to save report")
+		} else {
+			log.Info().Str("path", config.SaveReport).Msg("Report saved")
+		}
+	}
 
 	// Dry run: print JSON and exit
 	if config.DryRun {
@@ -211,6 +244,8 @@ func (a *ReviewAction) resolveConfig(c *cli.Context) domain.ReviewConfig {
 		PersonaName:       c.String("persona"),
 		CustomPersona:     c.String("custom-persona"),
 		CustomPersonaFile: c.String("custom-persona-file"),
+		Language:          c.String("language"),
+		SaveReport:        c.String("save-report"),
 		DryRun:            c.Bool("dry-run"),
 		Verbose:           c.Bool("verbose"),
 	}

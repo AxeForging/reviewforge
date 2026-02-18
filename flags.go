@@ -92,7 +92,7 @@ var projectContextFlag = cli.StringFlag{
 // Persona flags
 var personaFlag = cli.StringFlag{
 	Name:   "persona",
-	Usage:  "Reviewer persona: bob, robert, or leave empty for default",
+	Usage:  "Reviewer persona: bob, robert, maya, eli, or leave empty for default",
 	EnvVar: "INPUT_PERSONA,PERSONA",
 }
 
@@ -106,6 +106,20 @@ var customPersonaFileFlag = cli.StringFlag{
 	Name:   "custom-persona-file",
 	Usage:  "Path to custom persona JSON file",
 	EnvVar: "INPUT_CUSTOM_PERSONA_FILE,CUSTOM_PERSONA_FILE",
+}
+
+// Language flag
+var languageFlag = cli.StringFlag{
+	Name:   "language, l",
+	Usage:  "Language for review comments and summary (e.g. Portuguese, Spanish, French)",
+	EnvVar: "INPUT_LANGUAGE,LANGUAGE",
+}
+
+// Report flag
+var saveReportFlag = cli.StringFlag{
+	Name:   "save-report",
+	Usage:  "Save review report as JSON to this file path (includes learning insights)",
+	EnvVar: "SAVE_REPORT",
 }
 
 // Output flags
@@ -139,6 +153,8 @@ var reviewFlags = []cli.Flag{
 	personaFlag,
 	customPersonaFlag,
 	customPersonaFileFlag,
+	languageFlag,
+	saveReportFlag,
 	dryRunFlag,
 	verboseFlag,
 }

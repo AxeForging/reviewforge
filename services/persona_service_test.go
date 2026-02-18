@@ -3,6 +3,7 @@ package services
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/AxeForging/reviewforge/domain"
@@ -12,15 +13,15 @@ func TestPersonaService_ListPersonas(t *testing.T) {
 	svc := NewPersonaService()
 	personas := svc.ListPersonas()
 
-	if len(personas) != 2 {
-		t.Fatalf("expected 2 built-in personas, got %d", len(personas))
+	if len(personas) != 4 {
+		t.Fatalf("expected 4 built-in personas, got %d", len(personas))
 	}
 
-	if personas[0].Name != "bob" {
-		t.Errorf("first persona = %q, want bob", personas[0].Name)
-	}
-	if personas[1].Name != "robert" {
-		t.Errorf("second persona = %q, want robert", personas[1].Name)
+	expected := []string{"bob", "robert", "maya", "eli"}
+	for i, name := range expected {
+		if personas[i].Name != name {
+			t.Errorf("persona[%d] = %q, want %q", i, personas[i].Name, name)
+		}
 	}
 }
 
@@ -44,6 +45,32 @@ func TestPersonaService_GetPersona_Builtin(t *testing.T) {
 		}
 		if p.DisplayName != "Robert Dover Clow" {
 			t.Errorf("DisplayName = %q", p.DisplayName)
+		}
+	})
+
+	t.Run("maya", func(t *testing.T) {
+		p := svc.GetPersona(domain.ReviewConfig{PersonaName: "maya"})
+		if p == nil {
+			t.Fatal("expected non-nil persona for maya")
+		}
+		if p.DisplayName != "Maya Simplifica" {
+			t.Errorf("DisplayName = %q", p.DisplayName)
+		}
+		if !strings.Contains(p.Prompt, "analogy") {
+			t.Error("maya prompt should mention analogies")
+		}
+	})
+
+	t.Run("eli", func(t *testing.T) {
+		p := svc.GetPersona(domain.ReviewConfig{PersonaName: "eli"})
+		if p == nil {
+			t.Fatal("expected non-nil persona for eli")
+		}
+		if p.DisplayName != "Eli Passo" {
+			t.Errorf("DisplayName = %q", p.DisplayName)
+		}
+		if !strings.Contains(p.Prompt, "newcomer") {
+			t.Error("eli prompt should mention newcomers")
 		}
 	})
 
@@ -165,6 +192,12 @@ func TestPersonaService_ValidatePersonaName(t *testing.T) {
 	}
 	if err := svc.ValidatePersonaName("robert"); err != nil {
 		t.Errorf("robert should be valid: %v", err)
+	}
+	if err := svc.ValidatePersonaName("maya"); err != nil {
+		t.Errorf("maya should be valid: %v", err)
+	}
+	if err := svc.ValidatePersonaName("eli"); err != nil {
+		t.Errorf("eli should be valid: %v", err)
 	}
 	if err := svc.ValidatePersonaName("unknown"); err == nil {
 		t.Error("unknown should be invalid")

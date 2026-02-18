@@ -26,6 +26,12 @@ type ReviewConfig struct {
 	CustomPersona     string `json:"custom_persona"`
 	CustomPersonaFile string `json:"custom_persona_file"`
 
+	// Language
+	Language string `json:"language"`
+
+	// Report
+	SaveReport string `json:"save_report"`
+
 	// Output
 	DryRun  bool `json:"dry_run"`
 	Verbose bool `json:"verbose"`
@@ -79,6 +85,28 @@ type AIReviewOutput struct {
 	Comments        []ReviewComment `json:"comments"`
 	SuggestedAction string          `json:"suggestedAction"`
 	Confidence      int             `json:"confidence"`
+	Learning        *LearningReport `json:"learning,omitempty"`
+}
+
+// LearningReport contains insights for developer growth, included when --save-report is used
+type LearningReport struct {
+	TechniquesSpotted []string `json:"techniques_spotted"`
+	WhatWentWell      []string `json:"what_went_well"`
+	AreasToImprove    []string `json:"areas_to_improve"`
+	KeyTakeaways      []string `json:"key_takeaways"`
+}
+
+// ReviewReport is the full saved report including metadata
+type ReviewReport struct {
+	Repo       string          `json:"repo"`
+	PRNumber   int             `json:"pr_number"`
+	PRTitle    string          `json:"pr_title"`
+	Provider   string          `json:"provider"`
+	Model      string          `json:"model"`
+	Persona    string          `json:"persona,omitempty"`
+	Language   string          `json:"language,omitempty"`
+	Review     AIReviewOutput  `json:"review"`
+	FilesReviewed []string     `json:"files_reviewed"`
 }
 
 // ReviewRequest is what gets sent to the AI provider

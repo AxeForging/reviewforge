@@ -1,0 +1,59 @@
+name: "ReviewForge"
+description: "AI-powered code reviewer with personality — supports OpenAI, Anthropic, and Gemini"
+inputs:
+  GITHUB_TOKEN:
+    description: "GitHub token for API access"
+    required: true
+  AI_PROVIDER:
+    description: "AI provider: openai, anthropic, gemini"
+    required: true
+    default: "openai"
+  AI_MODEL:
+    description: "AI model to use (e.g. gpt-4, claude-sonnet-4-20250514, gemini-pro)"
+    required: true
+    default: "gpt-4"
+  AI_API_KEY:
+    description: "API key for the chosen AI provider"
+    required: true
+  AI_TEMPERATURE:
+    description: "Temperature for AI model (0-1, higher = more creative)"
+    required: false
+    default: "0"
+  APPROVE_REVIEWS:
+    description: "Allow approving/requesting changes on PRs"
+    required: false
+    default: "true"
+  MAX_COMMENTS:
+    description: "Maximum number of line comments (0 = unlimited)"
+    required: false
+    default: "25"
+  INCREMENTAL:
+    description: "Only review new changes since last bot review"
+    required: false
+    default: "true"
+  EXCLUDE_PATTERNS:
+    description: "Comma-separated glob patterns to exclude"
+    required: false
+    default: "**/*.lock,**/*.json,**/*.md"
+  CONTEXT_FILES:
+    description: "Comma-separated files to include as AI context"
+    required: false
+    default: "package.json,README.md"
+  PROJECT_CONTEXT:
+    description: "Additional context about the project for the AI"
+    required: false
+  PERSONA:
+    description: "Reviewer persona: bob, robert, or leave empty for default expert reviewer"
+    required: false
+  CUSTOM_PERSONA:
+    description: 'Custom persona JSON: {"name":"...","prompt":"..."}'
+    required: false
+  CUSTOM_PERSONA_FILE:
+    description: "Path to custom persona JSON file"
+    required: false
+runs:
+  using: "docker"
+  image: "Dockerfile"
+branding:
+  icon: "code"
+  color: "orange"

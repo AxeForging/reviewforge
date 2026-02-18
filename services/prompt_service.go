@@ -93,19 +93,46 @@ When reviewing updates to a PR:
 5. Consider the cumulative impact of changes
 6. IMPORTANT: Only use line numbers that appear in the current "diff" field`
 
-// BuildSystemPrompt constructs the system prompt for the AI, including persona if set
-func (s *PromptService) BuildSystemPrompt(isUpdate bool, personaPrompt string) string {
+// PromptOptions configures system prompt generation
+type PromptOptions struct {
+	IsUpdate      bool
+	PersonaPrompt string
+	Language      string
+	IncludeLearning bool
+}
+
+// BuildSystemPrompt constructs the system prompt for the AI, including persona, language, and learning sections
+func (s *PromptService) BuildSystemPrompt(opts PromptOptions) string {
 	var b strings.Builder
 	b.WriteString(baseCodeReviewPrompt)
 
-	if isUpdate {
+	if opts.IsUpdate {
 		b.WriteString("\n")
 		b.WriteString(updateReviewPrompt)
 	}
 
-	if personaPrompt != "" {
+	if opts.PersonaPrompt != "" {
 		b.WriteString("\n\n------\nPersona Instructions:\n")
-		b.WriteString(personaPrompt)
+		b.WriteString(opts.PersonaPrompt)
+	}
+
+	if opts.Language != "" {
+		lang := resolveLanguage(opts.Language)
+		b.WriteString("\n\n------\nLanguage Instructions:\n")
+		b.WriteString("Write ALL review comments, summary text, and feedback in " + lang + ".\n")
+		b.WriteString("Only keep code references, file paths, and JSON field names in English.\n")
+		b.WriteString("The JSON structure keys (summary, comments, suggestedAction, etc.) must remain in English.")
+	}
+
+	if opts.IncludeLearning {
+		b.WriteString("\n\n------\nLearning Report Instructions:\n")
+		b.WriteString(`Include a "learning" object in your JSON response with these fields:
+- "techniques_spotted": array of strings — design patterns, techniques, and best practices you identified in the code (e.g. "Dependency Injection", "Builder Pattern", "Error wrapping")
+- "what_went_well": array of strings — things the developer did well that should be reinforced
+- "areas_to_improve": array of strings — skills or practices the developer should work on, framed as growth opportunities
+- "key_takeaways": array of strings — the most important lessons from this code review that the developer should remember
+
+Be specific and educational. Each item should teach something.`)
 	}
 
 	return b.String()
@@ -162,4 +189,44 @@ func (s *PromptService) ParseAIResponse(raw string) (*domain.AIReviewOutput, err
 // FormatModelFooter returns the model info line to append to the review summary
 func (s *PromptService) FormatModelFooter(provider, model string) string {
 	return "_Code review performed by `" + strings.ToUpper(provider) + " - " + model + "`._"
+}
+
+// resolveLanguage maps locale codes (e.g. "pt-br") to full language names,
+// or returns the input as-is if it's already a language name
+func resolveLanguage(code string) string {
+	locales := map[string]string{
+		"en":    "English",
+		"en-us": "English (US)",
+		"en-gb": "English (UK)",
+		"pt":    "Portuguese",
+		"pt-br": "Brazilian Portuguese",
+		"pt-pt": "European Portuguese",
+		"es":    "Spanish",
+		"es-mx": "Mexican Spanish",
+		"es-es": "European Spanish",
+		"fr":    "French",
+		"fr-ca": "Canadian French",
+		"de":    "German",
+		"it":    "Italian",
+		"nl":    "Dutch",
+		"ja":    "Japanese",
+		"ko":    "Korean",
+		"zh":    "Chinese",
+		"zh-cn": "Simplified Chinese",
+		"zh-tw": "Traditional Chinese",
+		"ru":    "Russian",
+		"ar":    "Arabic",
+		"hi":    "Hindi",
+		"tr":    "Turkish",
+		"pl":    "Polish",
+		"sv":    "Swedish",
+		"da":    "Danish",
+		"no":    "Norwegian",
+		"fi":    "Finnish",
+	}
+
+	if lang, ok := locales[strings.ToLower(code)]; ok {
+		return lang
+	}
+	return code
 }

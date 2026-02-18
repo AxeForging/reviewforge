@@ -165,7 +165,7 @@ ReviewForge includes built-in reviewer personas that modify the review style:
 | `bob` | Bob Lil Swagger | Friendly, encouraging. Celebrates good code, suggests improvements warmly, teaches while reviewing. |
 | `robert` | Robert Dover Clow | Nerdy tech expert. Names every pattern spotted, references CS concepts and SOLID principles. |
 | `maya` | Maya Simplifica | Everyday analogies teacher. Explains concepts using cooking, building, gardening and other real-world parallels. |
-| `eli` | Eli Passo | Beginner-friendly mentor. Patient explanations for newcomers, avoids jargon, celebrates small wins, suggests learning paths. |
+| `eli` | Eli Passo | Clear and patient mentor. Simple explanations, avoids jargon, celebrates good decisions, suggests learning paths. |
 | _(empty)_ | Default | Standard expert code reviewer. Professional, thorough, no personality overlay. |
 
 ### Custom Personas

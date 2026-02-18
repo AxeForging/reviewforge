@@ -239,22 +239,41 @@ func (s *GitHubService) postReview(prNumber int, body map[string]interface{}, co
 		return nil
 	}
 
-	// 422 often means line comments are invalid — retry without them
-	if status == http.StatusUnprocessableEntity && len(comments) > 0 {
-		log.Warn().Int("status", status).Msg("Review submission failed with comments, retrying without line comments")
+	// 422 often means line comments are invalid or event not allowed — retry with fallbacks
+	if status == http.StatusUnprocessableEntity {
+		// First fallback: remove line comments
+		if len(comments) > 0 {
+			log.Warn().Int("status", status).Msg("Review submission failed with comments, retrying without line comments")
 
-		summary := body["body"].(string)
-		body["body"] = summary + "\n\n> Note: Some line comments were omitted due to technical limitations."
-		body["comments"] = []map[string]interface{}{}
+			summary := body["body"].(string)
+			body["body"] = summary + "\n\n> Note: Some line comments were omitted due to technical limitations."
+			body["comments"] = []map[string]interface{}{}
 
-		retryData, _ := json.Marshal(body)
-		respData, status, err = s.doRequest("POST", path, strings.NewReader(string(retryData)), "")
-		if err != nil {
-			return err
+			retryData, _ := json.Marshal(body)
+			respData, status, err = s.doRequest("POST", path, strings.NewReader(string(retryData)), "")
+			if err != nil {
+				return err
+			}
+			if status == http.StatusOK || status == http.StatusCreated {
+				log.Info().Msg("Review submitted without line comments")
+				return nil
+			}
 		}
-		if status == http.StatusOK || status == http.StatusCreated {
-			log.Info().Msg("Review submitted without line comments")
-			return nil
+
+		// Second fallback: downgrade event to COMMENT (can't request_changes on own PR, etc.)
+		if body["event"] != "COMMENT" {
+			log.Warn().Str("event", body["event"].(string)).Msg("Review submission failed, retrying with COMMENT event")
+			body["event"] = "COMMENT"
+
+			retryData, _ := json.Marshal(body)
+			respData, status, err = s.doRequest("POST", path, strings.NewReader(string(retryData)), "")
+			if err != nil {
+				return err
+			}
+			if status == http.StatusOK || status == http.StatusCreated {
+				log.Info().Msg("Review submitted with COMMENT event")
+				return nil
+			}
 		}
 	}
 

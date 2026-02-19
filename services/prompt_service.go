@@ -2,6 +2,7 @@ package services
 
 import (
 	"encoding/json"
+	"os"
 	"strings"
 
 	"github.com/AxeForging/reviewforge/domain"
@@ -93,6 +94,43 @@ When reviewing updates to a PR:
 5. Consider the cumulative impact of changes
 6. IMPORTANT: Only use line numbers that appear in the current "diff" field`
 
+// Built-in review rules presets
+var reviewRulesPresets = map[string]string{
+	"concise": `ONLY comment on:
+1. Clear logical errors or bugs in the code
+2. Significant performance issues that are obvious from the code itself
+3. Security vulnerabilities
+4. Breaking changes that degrade existing functionality
+
+DO NOT comment on:
+1. Variable or function naming
+2. Minor performance optimizations
+3. Code style preferences
+4. Changes to numeric values unless they clearly break functionality
+5. Linting issues (handled separately)
+
+If unsure whether something is worth commenting on, do not comment.
+Prepend a warning emoji for critical issues only.
+Keep responses concise and directly related to code functionality.`,
+
+	"thorough": `Comment on ALL of the following:
+1. Bugs, logical errors, and edge cases
+2. Security vulnerabilities and unsafe patterns
+3. Performance issues and inefficiencies
+4. Breaking changes or backward compatibility concerns
+5. Error handling gaps (missing checks, swallowed errors)
+6. Resource leaks (unclosed connections, missing cleanup)
+7. Concurrency issues (race conditions, deadlocks)
+8. API design concerns (naming, contracts, versioning)
+
+DO NOT comment on:
+1. Pure code style or formatting preferences
+2. Obvious or trivial changes
+3. Compliments or positive-only feedback
+
+Be thorough but actionable — every comment should explain the problem and suggest a fix.`,
+}
+
 // PromptOptions configures system prompt generation
 type PromptOptions struct {
 	IsUpdate        bool
@@ -100,6 +138,7 @@ type PromptOptions struct {
 	Language        string
 	IncludeLearning bool
 	StrictChanges   bool
+	ReviewRules     string
 }
 
 // BuildSystemPrompt constructs the system prompt for the AI, including persona, language, and learning sections
@@ -123,6 +162,11 @@ For everything else — style, best practices, performance suggestions, missing 
 code smells, refactoring opportunities — use "comment" or "approve".
 Do NOT request changes for improvements, suggestions, or new patterns to adopt.
 Only block the PR if it genuinely breaks something.`)
+	}
+
+	if opts.ReviewRules != "" {
+		b.WriteString("\n\n------\nReview Rules:\n")
+		b.WriteString(opts.ReviewRules)
 	}
 
 	if opts.PersonaPrompt != "" {
@@ -203,6 +247,37 @@ func (s *PromptService) ParseAIResponse(raw string) (*domain.AIReviewOutput, err
 // FormatModelFooter returns the model info line to append to the review summary
 func (s *PromptService) FormatModelFooter(provider, model string) string {
 	return "_Code review performed by `" + strings.ToUpper(provider) + " - " + model + "`._"
+}
+
+// ResolveReviewRules resolves review rules from preset name, custom text, or file.
+// Priority: custom rules file > custom rules text > preset name
+func ResolveReviewRules(presetName, customRules, customRulesFile string) string {
+	if customRulesFile != "" {
+		data, err := os.ReadFile(customRulesFile)
+		if err != nil {
+			log.Warn().Err(err).Str("file", customRulesFile).Msg("Failed to read custom rules file, falling back")
+		} else {
+			return strings.TrimSpace(string(data))
+		}
+	}
+
+	if customRules != "" {
+		return customRules
+	}
+
+	if presetName != "" {
+		if rules, ok := reviewRulesPresets[strings.ToLower(presetName)]; ok {
+			return rules
+		}
+		log.Warn().Str("name", presetName).Msg("Unknown review rules preset, using default")
+	}
+
+	return ""
+}
+
+// ListReviewRulesPresets returns the available preset names
+func ListReviewRulesPresets() []string {
+	return []string{"concise", "thorough"}
 }
 
 // resolveLanguage maps locale codes (e.g. "pt-br") to full language names,

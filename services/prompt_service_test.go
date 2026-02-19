@@ -1,6 +1,7 @@
 package services
 
 import (
+	"os"
 	"strings"
 	"testing"
 
@@ -79,6 +80,16 @@ func TestPromptService_BuildSystemPrompt(t *testing.T) {
 		}
 		if !strings.Contains(prompt, "key_takeaways") {
 			t.Error("should instruct to include key takeaways")
+		}
+	})
+
+	t.Run("with review rules", func(t *testing.T) {
+		prompt := svc.BuildSystemPrompt(PromptOptions{ReviewRules: "Only comment on bugs."})
+		if !strings.Contains(prompt, "Review Rules") {
+			t.Error("should contain review rules section header")
+		}
+		if !strings.Contains(prompt, "Only comment on bugs.") {
+			t.Error("should contain the rules text")
 		}
 	})
 
@@ -241,6 +252,61 @@ func TestPromptService_ParseAIResponse(t *testing.T) {
 		}
 		if len(out.Learning.WhatWentWell) != 1 {
 			t.Errorf("WhatWentWell = %v", out.Learning.WhatWentWell)
+		}
+	})
+}
+
+func TestResolveReviewRules(t *testing.T) {
+	t.Run("preset concise", func(t *testing.T) {
+		rules := ResolveReviewRules("concise", "", "")
+		if !strings.Contains(rules, "ONLY comment on") {
+			t.Error("concise preset should contain comment rules")
+		}
+	})
+
+	t.Run("preset thorough", func(t *testing.T) {
+		rules := ResolveReviewRules("thorough", "", "")
+		if !strings.Contains(rules, "Comment on ALL") {
+			t.Error("thorough preset should contain thorough rules")
+		}
+	})
+
+	t.Run("unknown preset returns empty", func(t *testing.T) {
+		rules := ResolveReviewRules("unknown", "", "")
+		if rules != "" {
+			t.Errorf("unknown preset should return empty, got %q", rules)
+		}
+	})
+
+	t.Run("custom rules override preset", func(t *testing.T) {
+		rules := ResolveReviewRules("concise", "My custom rules", "")
+		if rules != "My custom rules" {
+			t.Errorf("custom rules should override preset, got %q", rules)
+		}
+	})
+
+	t.Run("custom rules file", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		path := tmpDir + "/rules.txt"
+		os.WriteFile(path, []byte("Rules from file"), 0o644)
+
+		rules := ResolveReviewRules("concise", "inline", path)
+		if rules != "Rules from file" {
+			t.Errorf("file should override all, got %q", rules)
+		}
+	})
+
+	t.Run("missing file falls back to custom rules", func(t *testing.T) {
+		rules := ResolveReviewRules("", "fallback", "/nonexistent/rules.txt")
+		if rules != "fallback" {
+			t.Errorf("should fall back to custom rules, got %q", rules)
+		}
+	})
+
+	t.Run("empty everything returns empty", func(t *testing.T) {
+		rules := ResolveReviewRules("", "", "")
+		if rules != "" {
+			t.Errorf("should return empty, got %q", rules)
 		}
 	})
 }

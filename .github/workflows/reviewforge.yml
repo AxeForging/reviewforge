@@ -47,6 +47,14 @@ on:
         description: 'Only request changes for syntax errors or degradation'
         type: string
         default: 'false'
+      review_rules:
+        description: 'Comment rules preset: concise, thorough'
+        type: string
+        default: ''
+      custom_rules:
+        description: 'Custom review rules text'
+        type: string
+        default: ''
     secrets:
       ai_api_key:
         required: true
@@ -77,3 +85,5 @@ jobs:
           APPROVE_REVIEWS: ${{ inputs.approve_reviews }}
           INCREMENTAL: ${{ inputs.incremental }}
           STRICT_CHANGES: ${{ inputs.strict_changes }}
+          REVIEW_RULES: ${{ inputs.review_rules }}
+          CUSTOM_RULES: ${{ inputs.custom_rules }}

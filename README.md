@@ -258,6 +258,56 @@ The report includes:
 
 Great for tracking developer growth, onboarding, and team learning.
 
+## Review Rules
+
+Control what the AI comments on using built-in presets or custom rules.
+
+### Built-in Presets
+
+| Preset | Focus |
+|--------|-------|
+| `concise` | Only bugs, security, performance, and breaking changes. Ignores style, naming, minor optimizations. |
+| `thorough` | Bugs, security, performance, error handling, resource leaks, concurrency, API design. Ignores pure style. |
+| _(empty)_ | Default expert reviewer behavior. |
+
+```yaml
+# GitHub Action — use a preset
+- uses: AxeForging/reviewforge@v1
+  with:
+    REVIEW_RULES: concise
+    # ...
+```
+
+```bash
+# CLI — use a preset
+reviewforge review --review-rules concise ...
+```
+
+### Custom Rules
+
+Pass your own rules as text (inline or from file):
+
+```yaml
+# GitHub Action — inline custom rules
+- uses: AxeForging/reviewforge@v1
+  with:
+    CUSTOM_RULES: |
+      ONLY comment on security vulnerabilities and breaking changes.
+      DO NOT comment on style, naming, or minor issues.
+      Prepend "⚠️" for critical issues only.
+    # ...
+```
+
+```bash
+# CLI — custom rules from file
+reviewforge review --custom-rules-file ./my-rules.txt ...
+
+# CLI — inline custom rules
+reviewforge review --custom-rules "Only comment on bugs and security issues" ...
+```
+
+Custom rules override the `--review-rules` preset. You can combine them with personas and language.
+
 ## Configuration
 
 ### GitHub Action Inputs
@@ -280,6 +330,9 @@ Great for tracking developer growth, onboarding, and team learning.
 | `CUSTOM_PERSONA_FILE` | No | - | Path to persona JSON file |
 | `LANGUAGE` | No | - | Review language (e.g. `pt-br`, `es`, `French`) |
 | `STRICT_CHANGES` | No | `false` | Only request changes for syntax errors or degradation |
+| `REVIEW_RULES` | No | - | Comment rules preset: `concise`, `thorough` |
+| `CUSTOM_RULES` | No | - | Custom review rules text (what to comment on / ignore) |
+| `CUSTOM_RULES_FILE` | No | - | Path to a file with custom review rules |
 
 ### CLI Flags
 

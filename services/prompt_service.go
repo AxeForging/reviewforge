@@ -120,8 +120,12 @@ If the code works correctly, compiles, and doesn't break anything: DO NOT commen
 If you are unsure whether something is a real bug: DO NOT comment.
 An empty comments array is a GOOD outcome when the code is functional.
 
-For the summary: briefly describe what the PR does and confirm it is safe to merge.
-Keep the summary short. Do not list suggestions in the summary.
+For the summary, ALWAYS include these sections using Markdown:
+1. **Core Changes**: What the PR does (2-3 bullet points max)
+2. **Concerns**: Only if there are real bugs/security/breaking issues. Omit this section if there are none.
+3. **Verdict**: Approve, Comment, or Request Changes — with a short justification
+
+Do not list suggestions or improvements in the summary.
 Prepend ⚠️ for critical issues only.`,
 
 	"thorough": `Comment on ALL of the following:

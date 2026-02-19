@@ -271,10 +271,24 @@ func TestResolveReviewRules(t *testing.T) {
 		}
 	})
 
-	t.Run("unknown preset returns empty", func(t *testing.T) {
+	t.Run("unknown preset falls back to concise", func(t *testing.T) {
 		rules := ResolveReviewRules("unknown", "", "")
+		if !strings.Contains(rules, "ONLY comment on") {
+			t.Error("unknown preset should fall back to concise rules")
+		}
+	})
+
+	t.Run("none disables rules", func(t *testing.T) {
+		rules := ResolveReviewRules("none", "", "")
 		if rules != "" {
-			t.Errorf("unknown preset should return empty, got %q", rules)
+			t.Errorf("none should return empty, got %q", rules)
+		}
+	})
+
+	t.Run("none overrides custom rules", func(t *testing.T) {
+		rules := ResolveReviewRules("none", "custom", "")
+		if rules != "" {
+			t.Errorf("none should override custom rules, got %q", rules)
 		}
 	})
 
@@ -303,10 +317,10 @@ func TestResolveReviewRules(t *testing.T) {
 		}
 	})
 
-	t.Run("empty everything returns empty", func(t *testing.T) {
+	t.Run("empty everything defaults to concise", func(t *testing.T) {
 		rules := ResolveReviewRules("", "", "")
-		if rules != "" {
-			t.Errorf("should return empty, got %q", rules)
+		if !strings.Contains(rules, "ONLY comment on") {
+			t.Error("empty should default to concise rules")
 		}
 	})
 }

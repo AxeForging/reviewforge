@@ -250,8 +250,14 @@ func (s *PromptService) FormatModelFooter(provider, model string) string {
 }
 
 // ResolveReviewRules resolves review rules from preset name, custom text, or file.
-// Priority: custom rules file > custom rules text > preset name
+// Priority: custom rules file > custom rules text > preset name > default (concise).
+// Use preset "none" to disable default rules entirely.
 func ResolveReviewRules(presetName, customRules, customRulesFile string) string {
+	// "none" explicitly disables all rules
+	if strings.ToLower(presetName) == "none" {
+		return ""
+	}
+
 	if customRulesFile != "" {
 		data, err := os.ReadFile(customRulesFile)
 		if err != nil {
@@ -272,7 +278,8 @@ func ResolveReviewRules(presetName, customRules, customRulesFile string) string 
 		log.Warn().Str("name", presetName).Msg("Unknown review rules preset, using default")
 	}
 
-	return ""
+	// Default to concise rules
+	return reviewRulesPresets["concise"]
 }
 
 // ListReviewRulesPresets returns the available preset names

@@ -117,7 +117,7 @@ var strictChangesFlag = cli.BoolFlag{
 // Review rules flags
 var reviewRulesFlag = cli.StringFlag{
 	Name:   "review-rules",
-	Usage:  "Built-in comment rules preset: concise, thorough (controls what the AI comments on)",
+	Usage:  "Comment rules preset: concise (default), thorough, none (disable rules)",
 	EnvVar: "INPUT_REVIEW_RULES,REVIEW_RULES",
 }
 

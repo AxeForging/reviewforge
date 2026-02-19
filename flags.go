@@ -114,6 +114,25 @@ var strictChangesFlag = cli.BoolFlag{
 	EnvVar: "INPUT_STRICT_CHANGES,STRICT_CHANGES",
 }
 
+// Review rules flags
+var reviewRulesFlag = cli.StringFlag{
+	Name:   "review-rules",
+	Usage:  "Built-in comment rules preset: concise, thorough (controls what the AI comments on)",
+	EnvVar: "INPUT_REVIEW_RULES,REVIEW_RULES",
+}
+
+var customRulesFlag = cli.StringFlag{
+	Name:   "custom-rules",
+	Usage:  "Custom review rules text (appended to system prompt, overrides --review-rules)",
+	EnvVar: "INPUT_CUSTOM_RULES,CUSTOM_RULES",
+}
+
+var customRulesFileFlag = cli.StringFlag{
+	Name:   "custom-rules-file",
+	Usage:  "Path to a file containing custom review rules",
+	EnvVar: "INPUT_CUSTOM_RULES_FILE,CUSTOM_RULES_FILE",
+}
+
 // Language flag
 var languageFlag = cli.StringFlag{
 	Name:   "language, l",
@@ -162,6 +181,9 @@ var reviewFlags = []cli.Flag{
 	languageFlag,
 	saveReportFlag,
 	strictChangesFlag,
+	reviewRulesFlag,
+	customRulesFlag,
+	customRulesFileFlag,
 	dryRunFlag,
 	verboseFlag,
 }

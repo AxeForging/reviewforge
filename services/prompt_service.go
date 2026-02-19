@@ -96,22 +96,33 @@ When reviewing updates to a PR:
 
 // Built-in review rules presets
 var reviewRulesPresets = map[string]string{
-	"concise": `ONLY comment on:
-1. Clear logical errors or bugs in the code
-2. Significant performance issues that are obvious from the code itself
-3. Security vulnerabilities
-4. Breaking changes that degrade existing functionality
+	"concise": `CRITICAL OVERRIDE — These rules REPLACE all previous comment guidelines above.
 
-DO NOT comment on:
-1. Variable or function naming
-2. Minor performance optimizations
-3. Code style preferences
-4. Changes to numeric values unless they clearly break functionality
-5. Linting issues (handled separately)
+You MUST ONLY add line comments for:
+1. Clear logical errors or bugs that will cause incorrect behavior
+2. Security vulnerabilities (exposed secrets, injection, unsafe operations)
+3. Breaking changes that degrade existing functionality
+4. Crashes or runtime errors
 
-If unsure whether something is worth commenting on, do not comment.
-Prepend a warning emoji for critical issues only.
-Keep responses concise and directly related to code functionality.`,
+You MUST NOT add line comments for ANY of the following (zero tolerance):
+1. Suggestions to use defer, context.Context, or different patterns — these are style preferences
+2. Suggesting better approaches, alternative implementations, or "improvements"
+3. Variable or function naming
+4. Performance optimizations unless they cause measurable degradation
+5. Code style or idiom preferences (even if the current approach is less common)
+6. Missing tests or test suggestions
+7. Linting issues
+8. Backoff strategy suggestions (linear vs exponential)
+9. Anything that starts with "you could", "consider", "it would be nice", or "for future"
+10. Changes to numeric values unless they clearly break functionality
+
+If the code works correctly, compiles, and doesn't break anything: DO NOT comment on it.
+If you are unsure whether something is a real bug: DO NOT comment.
+An empty comments array is a GOOD outcome when the code is functional.
+
+For the summary: briefly describe what the PR does and confirm it is safe to merge.
+Keep the summary short. Do not list suggestions in the summary.
+Prepend ⚠️ for critical issues only.`,
 
 	"thorough": `Comment on ALL of the following:
 1. Bugs, logical errors, and edge cases

@@ -259,8 +259,8 @@ func TestPromptService_ParseAIResponse(t *testing.T) {
 func TestResolveReviewRules(t *testing.T) {
 	t.Run("preset concise", func(t *testing.T) {
 		rules := ResolveReviewRules("concise", "", "")
-		if !strings.Contains(rules, "ONLY comment on") {
-			t.Error("concise preset should contain comment rules")
+		if !strings.Contains(rules, "MUST ONLY add line comments") {
+			t.Error("concise preset should contain concise rules")
 		}
 	})
 
@@ -273,7 +273,7 @@ func TestResolveReviewRules(t *testing.T) {
 
 	t.Run("unknown preset falls back to concise", func(t *testing.T) {
 		rules := ResolveReviewRules("unknown", "", "")
-		if !strings.Contains(rules, "ONLY comment on") {
+		if !strings.Contains(rules, "MUST ONLY add line comments") {
 			t.Error("unknown preset should fall back to concise rules")
 		}
 	})
@@ -319,7 +319,7 @@ func TestResolveReviewRules(t *testing.T) {
 
 	t.Run("empty everything defaults to concise", func(t *testing.T) {
 		rules := ResolveReviewRules("", "", "")
-		if !strings.Contains(rules, "ONLY comment on") {
+		if !strings.Contains(rules, "MUST ONLY add line comments") {
 			t.Error("empty should default to concise rules")
 		}
 	})

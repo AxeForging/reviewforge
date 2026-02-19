@@ -85,10 +85,20 @@ func (a *ReviewAction) Execute(c *cli.Context) error {
 	}
 
 	// Parse and filter diff
-	files := a.DiffService.ParseUnifiedDiff(diffText)
+	allFiles := a.DiffService.ParseUnifiedDiff(diffText)
 	excludePatterns := a.DiffService.ParseExcludePatterns(strings.Join(config.ExcludePatterns, ","))
-	files = a.DiffService.FilterFiles(files, excludePatterns)
-	log.Info().Int("files", len(files)).Msg("Files to review after filtering")
+	files := a.DiffService.FilterFiles(allFiles, excludePatterns)
+
+	// Log excluded patterns and filtered files
+	log.Info().Strs("exclude_patterns", config.ExcludePatterns).Msg("File exclusion patterns")
+	if excluded := len(allFiles) - len(files); excluded > 0 {
+		log.Info().Int("excluded", excluded).Int("remaining", len(files)).Msg("Files filtered out by exclusion patterns")
+	}
+	fileNames := make([]string, len(files))
+	for i, f := range files {
+		fileNames[i] = f.Path
+	}
+	log.Info().Strs("files", fileNames).Msg("Files to review")
 
 	if len(files) == 0 {
 		log.Info().Msg("No files to review after filtering")
@@ -116,6 +126,15 @@ func (a *ReviewAction) Execute(c *cli.Context) error {
 		}
 	}
 
+	// Log context files loaded
+	if len(contextFiles) > 0 {
+		ctxNames := make([]string, len(contextFiles))
+		for i, cf := range contextFiles {
+			ctxNames[i] = cf.Path
+		}
+		log.Info().Strs("context_files", ctxNames).Msg("Context files loaded for AI")
+	}
+
 	// Build AI request
 	reviewReq := domain.ReviewRequest{
 		Files:        files,
@@ -137,6 +156,33 @@ func (a *ReviewAction) Execute(c *cli.Context) error {
 	// Build prompts
 	personaPrompt := a.PersonaService.GetPersonaPrompt(config)
 	reviewRules := services.ResolveReviewRules(config.ReviewRules, config.CustomRules, config.CustomRulesFile)
+
+	// Log active configuration
+	rulesLabel := config.ReviewRules
+	if rulesLabel == "" {
+		rulesLabel = "concise (default)"
+	}
+	if config.CustomRules != "" {
+		rulesLabel = "custom (inline)"
+	}
+	if config.CustomRulesFile != "" {
+		rulesLabel = "custom (file: " + config.CustomRulesFile + ")"
+	}
+	cfgLog := log.Info().Str("review_rules", rulesLabel)
+	if config.PersonaName != "" {
+		cfgLog = cfgLog.Str("persona", config.PersonaName)
+	}
+	if config.Language != "" {
+		cfgLog = cfgLog.Str("language", config.Language)
+	}
+	if config.StrictChanges {
+		cfgLog = cfgLog.Bool("strict_changes", true)
+	}
+	if config.SaveReport != "" {
+		cfgLog = cfgLog.Str("save_report", config.SaveReport)
+	}
+	cfgLog.Msg("Review configuration")
+
 	systemPrompt := a.PromptService.BuildSystemPrompt(services.PromptOptions{
 		IsUpdate:        isUpdate,
 		PersonaPrompt:   personaPrompt,
@@ -183,11 +229,6 @@ func (a *ReviewAction) Execute(c *cli.Context) error {
 
 	// Save report if requested
 	if config.SaveReport != "" {
-		fileNames := make([]string, len(files))
-		for i, f := range files {
-			fileNames[i] = f.Path
-		}
-
 		report := domain.ReviewReport{
 			Repo:          config.Repo,
 			PRNumber:      config.PRNumber,

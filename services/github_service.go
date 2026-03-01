@@ -47,7 +47,9 @@ func (s *GitHubService) doRequest(method, path string, body io.Reader, accept st
 	if err != nil {
 		return nil, 0, helpers.WrapError(err, "github", "failed to create request")
 	}
-	req.Header.Set("Authorization", "Bearer "+s.Token)
+	if s.Token != "" {
+		req.Header.Set("Authorization", "Bearer "+s.Token)
+	}
 	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
 	if accept != "" {
 		req.Header.Set("Accept", accept)

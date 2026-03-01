@@ -199,7 +199,9 @@ Only block the PR if it genuinely breaks something.`)
 
 	if opts.IncludeLearning {
 		b.WriteString("\n\n------\nLearning Report Instructions:\n")
-		b.WriteString(`Include a "learning" object in your JSON response with these fields:
+		b.WriteString(`CRITICAL: The entire "learning" object and all its text content MUST ALWAYS be written in English (en-US), regardless of the language requested for the rest of the review.
+
+Include a "learning" object in your JSON response with these fields:
 - "techniques_spotted": array of strings — design patterns, techniques, and best practices you identified in the code (e.g. "Dependency Injection", "Builder Pattern", "Error wrapping")
 - "what_went_well": array of strings — things the developer did well that should be reinforced
 - "areas_to_improve": array of strings — skills or practices the developer should work on, framed as growth opportunities

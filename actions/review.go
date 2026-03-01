@@ -201,7 +201,7 @@ func (a *ReviewAction) Execute(c *cli.Context) error {
 
 	// Call AI
 	log.Info().Str("provider", aiProvider.Name()).Msg("Sending review request to AI")
-	rawResponse, err := aiProvider.Review(systemPrompt, userPrompt, config.Temperature)
+	rawResponse, usage, err := aiProvider.Review(systemPrompt, userPrompt, config.Temperature)
 	if err != nil {
 		return helpers.WrapError(err, "review", "AI review failed")
 	}
@@ -221,6 +221,12 @@ func (a *ReviewAction) Execute(c *cli.Context) error {
 	footer := a.PromptService.FormatModelFooter(config.AIProvider, config.AIModel)
 	output.Summary = output.Summary + "\n\n------\n\n" + footer
 
+	// Add token usage if flag is on
+	if config.ShowTokenUsage && usage != nil {
+		output.Summary += fmt.Sprintf("\n\n**Token Usage:** Prompt: %d, Completion: %d, Total: %d",
+			usage.PromptTokens, usage.CompletionTokens, usage.TotalTokens)
+	}
+
 	log.Info().
 		Int("comments", len(output.Comments)).
 		Str("action", output.SuggestedAction).
@@ -238,6 +244,7 @@ func (a *ReviewAction) Execute(c *cli.Context) error {
 			Persona:       config.PersonaName,
 			Language:      config.Language,
 			Review:        *output,
+			TokenUsage:    usage,
 			FilesReviewed: fileNames,
 		}
 
@@ -294,6 +301,7 @@ func (a *ReviewAction) resolveConfig(c *cli.Context) domain.ReviewConfig {
 		CustomRules:       c.String("custom-rules"),
 		CustomRulesFile:   c.String("custom-rules-file"),
 		SaveReport:        c.String("save-report"),
+		ShowTokenUsage:    c.Bool("show-token-usage"),
 		DryRun:            c.Bool("dry-run"),
 		Verbose:           c.Bool("verbose"),
 	}

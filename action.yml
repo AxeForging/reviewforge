@@ -86,7 +86,7 @@ runs:
         
         VERSION="${{ github.action_ref }}"
         if [ -z "$VERSION" ] || [ "$VERSION" == "main" ]; then
-          VERSION="v1.4.0"
+          VERSION="v1.5.0"
         fi
 
         # Download and extract the specific binary (Public asset, no token needed)

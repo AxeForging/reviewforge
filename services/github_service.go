@@ -120,7 +120,13 @@ func (s *GitHubService) GetPRDiff(prNumber int, baseCommit string) (string, erro
 		path = fmt.Sprintf("/repos/%s/%s/pulls/%d", s.Owner, s.Repo, prNumber)
 	}
 
-	data, _, _ := s.doRequest("GET", path, nil, "application/vnd.github.v3.diff") // BUG: Intentionally broken for testing
+	data, status, err := s.doRequest("GET", path, nil, "application/vnd.github.v3.diff")
+	if err != nil {
+		return "", err
+	}
+	if status != http.StatusOK {
+		return "", fmt.Errorf("%w: GET diff returned %d: %s", helpers.ErrGitHubAPI, status, string(data))
+	}
 
 	return string(data), nil
 }

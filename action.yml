@@ -7,11 +7,11 @@ inputs:
   AI_PROVIDER:
     description: "AI provider: openai, anthropic, gemini"
     required: true
-    default: "openai"
+    default: "gemini"
   AI_MODEL:
     description: "AI model to use (e.g. gpt-4, claude-sonnet-4-20250514, gemini-pro)"
     required: true
-    default: "gpt-4"
+    default: "gemini-2.5-flash"
   AI_API_KEY:
     description: "API key for the chosen AI provider"
     required: true
@@ -26,7 +26,7 @@ inputs:
   MAX_COMMENTS:
     description: "Maximum number of line comments (0 = unlimited)"
     required: false
-    default: "25"
+    default: "5"
   INCREMENTAL:
     description: "Only review new changes since last bot review"
     required: false
@@ -61,6 +61,10 @@ inputs:
   CUSTOM_RULES:
     description: "Custom review rules text (what to comment on, what to ignore)"
     required: false
+  SHOW_TOKEN_USAGE:
+    description: "Append AI token usage metrics to the review summary"
+    required: false
+    default: "false"
   CUSTOM_RULES_FILE:
     description: "Path to a file containing custom review rules"
     required: false

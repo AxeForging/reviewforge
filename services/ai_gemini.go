@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/AxeForging/reviewforge/domain"
 	"github.com/AxeForging/reviewforge/helpers"
 	"github.com/rs/zerolog/log"
 )
@@ -20,7 +21,7 @@ type GeminiProvider struct {
 
 func (p *GeminiProvider) Name() string { return "gemini" }
 
-func (p *GeminiProvider) Review(systemPrompt, userPrompt string, temperature float64) (string, error) {
+func (p *GeminiProvider) Review(systemPrompt, userPrompt string, temperature float64) (string, *domain.TokenUsage, error) {
 	baseURL := p.BaseURL
 	if baseURL == "" {
 		baseURL = "https://generativelanguage.googleapis.com"
@@ -48,13 +49,13 @@ func (p *GeminiProvider) Review(systemPrompt, userPrompt string, temperature flo
 
 	data, err := json.Marshal(body)
 	if err != nil {
-		return "", helpers.WrapError(err, "gemini", "failed to marshal request")
+		return "", nil, helpers.WrapError(err, "gemini", "failed to marshal request")
 	}
 
 	url := fmt.Sprintf("%s/v1beta/models/%s:generateContent?key=%s", baseURL, p.Model, p.APIKey)
 	req, err := http.NewRequest("POST", url, bytes.NewReader(data))
 	if err != nil {
-		return "", helpers.WrapError(err, "gemini", "failed to create request")
+		return "", nil, helpers.WrapError(err, "gemini", "failed to create request")
 	}
 	req.Header.Set("Content-Type", "application/json")
 
@@ -62,17 +63,17 @@ func (p *GeminiProvider) Review(systemPrompt, userPrompt string, temperature flo
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return "", helpers.WrapError(err, "gemini", "request failed")
+		return "", nil, helpers.WrapError(err, "gemini", "request failed")
 	}
 	defer resp.Body.Close()
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", helpers.WrapError(err, "gemini", "failed to read response")
+		return "", nil, helpers.WrapError(err, "gemini", "failed to read response")
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("%w: Gemini returned %d: %s", helpers.ErrAIRequest, resp.StatusCode, string(respBody))
+		return "", nil, fmt.Errorf("%w: Gemini returned %d: %s", helpers.ErrAIRequest, resp.StatusCode, string(respBody))
 	}
 
 	var result struct {
@@ -83,14 +84,25 @@ func (p *GeminiProvider) Review(systemPrompt, userPrompt string, temperature flo
 				} `json:"parts"`
 			} `json:"content"`
 		} `json:"candidates"`
+		UsageMetadata struct {
+			PromptTokenCount     int `json:"promptTokenCount"`
+			CandidatesTokenCount int `json:"candidatesTokenCount"`
+			TotalTokenCount      int `json:"totalTokenCount"`
+		} `json:"usageMetadata"`
 	}
 	if err := json.Unmarshal(respBody, &result); err != nil {
-		return "", helpers.WrapError(err, "gemini", "failed to parse response")
+		return "", nil, helpers.WrapError(err, "gemini", "failed to parse response")
 	}
 
 	if len(result.Candidates) == 0 || len(result.Candidates[0].Content.Parts) == 0 {
-		return "", fmt.Errorf("%w: Gemini returned no content", helpers.ErrAIRequest)
+		return "", nil, fmt.Errorf("%w: Gemini returned no content", helpers.ErrAIRequest)
 	}
 
-	return result.Candidates[0].Content.Parts[0].Text, nil
+	usage := &domain.TokenUsage{
+		PromptTokens:     result.UsageMetadata.PromptTokenCount,
+		CompletionTokens: result.UsageMetadata.CandidatesTokenCount,
+		TotalTokens:      result.UsageMetadata.TotalTokenCount,
+	}
+
+	return result.Candidates[0].Content.Parts[0].Text, usage, nil
 }

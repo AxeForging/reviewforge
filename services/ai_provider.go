@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/AxeForging/reviewforge/domain"
 	"github.com/AxeForging/reviewforge/helpers"
 )
 
 // AIProvider is the interface for AI code review providers
 type AIProvider interface {
 	// Review sends a code review request and returns the raw JSON response body
-	Review(systemPrompt, userPrompt string, temperature float64) (string, error)
+	Review(systemPrompt, userPrompt string, temperature float64) (string, *domain.TokenUsage, error)
 	// Name returns the provider name for logging
 	Name() string
 }

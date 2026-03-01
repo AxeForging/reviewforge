@@ -148,6 +148,12 @@ var saveReportFlag = cli.StringFlag{
 }
 
 // Output flags
+var showTokenUsageFlag = cli.BoolFlag{
+	Name:   "show-token-usage",
+	Usage:  "Append AI token usage metrics to the review summary",
+	EnvVar: "SHOW_TOKEN_USAGE",
+}
+
 var dryRunFlag = cli.BoolFlag{
 	Name:   "dry-run",
 	Usage:  "Print review JSON instead of posting to GitHub",
@@ -184,6 +190,7 @@ var reviewFlags = []cli.Flag{
 	reviewRulesFlag,
 	customRulesFlag,
 	customRulesFileFlag,
+	showTokenUsageFlag,
 	dryRunFlag,
 	verboseFlag,
 }

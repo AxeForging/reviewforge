@@ -120,8 +120,6 @@ runs:
         INPUT_SHOW_TOKEN_USAGE: ${{ inputs.SHOW_TOKEN_USAGE }}
         INPUT_LANGUAGE: ${{ inputs.LANGUAGE }}
       run: |
-        ./reviewforge_bin review
-
-branding:
-  icon: "terminal"
-  color: "orange"
+        ./reviewforge_bin review \
+          --repo "${{ github.repository }}" \
+          --pr "${{ github.event.pull_request.number }}"

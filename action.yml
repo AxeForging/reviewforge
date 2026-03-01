@@ -1,5 +1,6 @@
 name: "ReviewForge"
 description: "AI-powered code reviewer with personality — supports OpenAI, Anthropic, and Gemini"
+author: "AxeForging"
 inputs:
   GITHUB_TOKEN:
     description: "GitHub token for API access"
@@ -71,9 +72,54 @@ inputs:
   LANGUAGE:
     description: "Language for review comments and summary (e.g. pt-br, es, fr)"
     required: false
+
 runs:
-  using: "docker"
-  image: "Dockerfile"
+  using: "composite"
+  steps:
+    - name: Download ReviewForge
+      shell: bash
+      run: |
+        OS="linux"
+        ARCH="amd64"
+        if [[ "${{ runner.os }}" == "macOS" ]]; then OS="darwin"; fi
+        if [[ "${{ runner.arch }}" == "ARM64" ]]; then ARCH="arm64"; fi
+        
+        # Download the specific binary for this architecture
+        # Use github.action_ref if available (e.g. v1.4.0), otherwise fallback to latest
+        RELEASE_TAG="${{ github.action_ref }}"
+        if [ -z "$RELEASE_TAG" ] || [ "$RELEASE_TAG" == "main" ]; then
+          gh release download --repo AxeForging/reviewforge --pattern "reviewforge-${OS}-${ARCH}*" --output reviewforge_bin
+        else
+          gh release download "$RELEASE_TAG" --repo AxeForging/reviewforge --pattern "reviewforge-${OS}-${ARCH}*" --output reviewforge_bin
+        fi
+        chmod +x reviewforge_bin
+
+    - name: Run ReviewForge
+      shell: bash
+      env:
+        INPUT_GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+        INPUT_AI_PROVIDER: ${{ inputs.AI_PROVIDER }}
+        INPUT_AI_MODEL: ${{ inputs.AI_MODEL }}
+        INPUT_AI_API_KEY: ${{ inputs.AI_API_KEY }}
+        INPUT_AI_TEMPERATURE: ${{ inputs.AI_TEMPERATURE }}
+        INPUT_APPROVE_REVIEWS: ${{ inputs.APPROVE_REVIEWS }}
+        INPUT_MAX_COMMENTS: ${{ inputs.MAX_COMMENTS }}
+        INPUT_INCREMENTAL: ${{ inputs.INCREMENTAL }}
+        INPUT_EXCLUDE_PATTERNS: ${{ inputs.EXCLUDE_PATTERNS }}
+        INPUT_CONTEXT_FILES: ${{ inputs.CONTEXT_FILES }}
+        INPUT_PROJECT_CONTEXT: ${{ inputs.PROJECT_CONTEXT }}
+        INPUT_PERSONA: ${{ inputs.PERSONA }}
+        INPUT_CUSTOM_PERSONA: ${{ inputs.CUSTOM_PERSONA }}
+        INPUT_CUSTOM_PERSONA_FILE: ${{ inputs.CUSTOM_PERSONA_FILE }}
+        INPUT_STRICT_CHANGES: ${{ inputs.STRICT_CHANGES }}
+        INPUT_REVIEW_RULES: ${{ inputs.REVIEW_RULES }}
+        INPUT_CUSTOM_RULES: ${{ inputs.CUSTOM_RULES }}
+        INPUT_CUSTOM_RULES_FILE: ${{ inputs.CUSTOM_RULES_FILE }}
+        INPUT_SHOW_TOKEN_USAGE: ${{ inputs.SHOW_TOKEN_USAGE }}
+        INPUT_LANGUAGE: ${{ inputs.LANGUAGE }}
+      run: |
+        ./reviewforge_bin review
+
 branding:
-  icon: "code"
+  icon: "terminal"
   color: "orange"

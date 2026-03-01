@@ -41,7 +41,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: AxeForging/reviewforge@v1
+      # Main for latest version or specify version tag based on our releases
+      - uses: AxeForging/reviewforge@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           AI_PROVIDER: openai
@@ -96,7 +97,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: AxeForging/reviewforge@v1
+      # Main for latest version or specify version tag based on our releases
+      - uses: AxeForging/reviewforge@main
         with:
           GITHUB_TOKEN: ${{ secrets.github_token }}
           AI_PROVIDER: ${{ inputs.ai_provider }}
@@ -186,7 +188,8 @@ reviewforge review --custom-persona-file ./my-persona.json ...
 ### GitHub Action with Persona
 
 ```yaml
-- uses: AxeForging/reviewforge@v1
+# Main for latest version or specify version tag based on our releases
+- uses: AxeForging/reviewforge@main
   with:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     AI_PROVIDER: anthropic
@@ -291,13 +294,15 @@ ReviewForge ships with default review rules (`concise`) that focus the AI on wha
 
 ```yaml
 # GitHub Action — switch to thorough preset
-- uses: AxeForging/reviewforge@v1
+# Main for latest version or specify version tag based on our releases
+- uses: AxeForging/reviewforge@main
   with:
     REVIEW_RULES: thorough
     # ...
 
 # GitHub Action — disable rules entirely
-- uses: AxeForging/reviewforge@v1
+# Main for latest version or specify version tag based on our releases
+- uses: AxeForging/reviewforge@main
   with:
     REVIEW_RULES: none
     # ...
@@ -317,7 +322,8 @@ Override the default rules with your own (inline text or from a file):
 
 ```yaml
 # GitHub Action — inline custom rules
-- uses: AxeForging/reviewforge@v1
+# Main for latest version or specify version tag based on our releases
+- uses: AxeForging/reviewforge@main
   with:
     CUSTOM_RULES: |
       ONLY comment on security vulnerabilities and breaking changes.

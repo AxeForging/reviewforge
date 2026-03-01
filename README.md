@@ -350,7 +350,7 @@ Use `--review-rules none` to disable all rules. Custom rules can be combined wit
 | `AI_TEMPERATURE` | No | `0` | Temperature (0-1) |
 | `APPROVE_REVIEWS` | No | `true` | Allow approve/request changes verdicts |
 | `MAX_COMMENTS` | No | `5` | Max line comments (0 = unlimited) |
-| `INCREMENTAL` | No | `true` | Only review new changes |
+| `INCREMENTAL` | No | `false` | Only review new changes |
 | `EXCLUDE_PATTERNS` | No | `**/*.lock,**/*.json,**/*.md` | Glob patterns to exclude |
 | `CONTEXT_FILES` | No | `package.json,README.md` | Files for AI context |
 | `PROJECT_CONTEXT` | No | - | Additional project context string |

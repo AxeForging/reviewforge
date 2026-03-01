@@ -31,7 +31,7 @@ inputs:
   INCREMENTAL:
     description: "Only review new changes since last bot review"
     required: false
-    default: "true"
+    default: "false"
   EXCLUDE_PATTERNS:
     description: "Comma-separated glob patterns to exclude"
     required: false

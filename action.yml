@@ -12,7 +12,7 @@ inputs:
   AI_MODEL:
     description: "AI model to use (e.g. gpt-4, claude-sonnet-4-20250514, gemini-pro)"
     required: true
-    default: "gemini-2.5-flash"
+    default: "gemini-3-flash-preview"
   AI_API_KEY:
     description: "API key for the chosen AI provider"
     required: true

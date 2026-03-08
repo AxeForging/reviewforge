@@ -86,7 +86,10 @@ runs:
         
         VERSION="${{ github.action_ref }}"
         if [ -z "$VERSION" ] || [ "$VERSION" == "main" ]; then
-          VERSION="v1.5.0"
+          # Fetch latest release tag
+          VERSION=$(curl -sS -o /dev/null -w '%{redirect_url}' \
+            "https://github.com/AxeForging/reviewforge/releases/latest" | grep -oP '[^/]+$')
+          echo "Resolved latest version: ${VERSION}"
         fi
 
         # Download and extract the specific binary (Public asset, no token needed)

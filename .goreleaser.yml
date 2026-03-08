@@ -1,0 +1,81 @@
+# GoReleaser configuration for ReviewForge
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+      - 386
+      - arm
+    ldflags:
+      - -s -w
+      - -X main.Version={{.Version}}
+      - -X main.BuildTime={{.Date}}
+      - -X main.GitCommit={{.FullCommit}}
+    ignore:
+      - goos: windows
+        goarch: arm
+
+archives:
+  - formats:
+      - tar.gz
+    name_template: "reviewforge-{{ .Os }}-{{ .Arch }}"
+    files:
+      - README.md
+      - LICENSE
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+
+checksum:
+  name_template: checksums.txt
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+
+release:
+  github:
+    owner: AxeForging
+    name: reviewforge
+  draft: false
+  prerelease: auto
+  name_template: "Release {{ .Tag }}"
+  footer: |
+    ## Installation
+
+    ### Go Install
+    ```bash
+    go install github.com/AxeForging/reviewforge@{{ .Tag }}
+    ```
+
+    ### Linux/macOS (AMD64)
+    ```bash
+    curl -L https://github.com/AxeForging/reviewforge/releases/download/{{ .Tag }}/reviewforge-linux-amd64.tar.gz | tar xz
+    chmod +x reviewforge-linux-amd64
+    sudo mv reviewforge-linux-amd64 /usr/local/bin/reviewforge
+    ```
+
+    ### Linux/macOS (ARM64)
+    ```bash
+    curl -L https://github.com/AxeForging/reviewforge/releases/download/{{ .Tag }}/reviewforge-linux-arm64.tar.gz | tar xz
+    chmod +x reviewforge-linux-arm64
+    sudo mv reviewforge-linux-arm64 /usr/local/bin/reviewforge
+    ```

@@ -95,8 +95,9 @@ runs:
         # Download and extract the specific binary (Public asset, no token needed)
         URL="https://github.com/AxeForging/reviewforge/releases/download/${VERSION}/reviewforge-${OS}-${ARCH}.tar.gz"
         echo "Downloading $URL..."
-        curl -sSL "$URL" | tar -xz
-        mv "reviewforge-${OS}-${ARCH}" reviewforge_bin
+        curl -sSL "$URL" -o /tmp/reviewforge.tar.gz
+        tar -xzf /tmp/reviewforge.tar.gz -C /tmp
+        mv /tmp/reviewforge reviewforge_bin
         chmod +x reviewforge_bin
 
     - name: Run ReviewForge

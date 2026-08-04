@@ -160,10 +160,10 @@
 
   /* ---- Use cases ---- */
   .usecase-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1rem; }
-  .usecase-card { padding: 1.25rem 1.4rem; }
+  .usecase-card { padding: 1.25rem 1.4rem; min-width: 0; }
   .usecase-card h3 { margin: 0 0 0.5rem; font-size: 1rem; }
   .usecase-card p { margin: 0; color: var(--af-text-muted); font-size: 0.9rem; line-height: 1.55; }
-  .usecase-card code { font-family: var(--af-font-mono); background: var(--af-surface); padding: 0.15em 0.4em; border-radius: 4px; font-size: 0.82em; display: inline-block; margin-top: 0.4rem; overflow-wrap: break-word; }
+  .usecase-card code { font-family: var(--af-font-mono); background: var(--af-surface); padding: 0.15em 0.4em; border-radius: 4px; font-size: 0.82em; display: inline-block; max-width: 100%; margin-top: 0.4rem; overflow-wrap: break-word; }
 
   /* ---- Personas table ---- */
   table { width: 100%; border-collapse: collapse; }
@@ -175,6 +175,7 @@
   /* ---- Install ---- */
   .install-steps { counter-reset: install; display: flex; flex-direction: column; gap: 0.9rem; max-width: 56ch; margin: 0 0 1.75rem; }
   .install-step { display: flex; gap: 0.9rem; align-items: flex-start; }
+  .install-step > *:last-child { min-width: 0; }
   .install-step .n {
     counter-increment: install; flex: none; width: 1.75rem; height: 1.75rem; border-radius: 50%;
     border: 1px solid var(--af-line); display: flex; align-items: center; justify-content: center;

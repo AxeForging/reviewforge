@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en" data-flavor="relay">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReviewForge — AI code review with personality</title>
+<meta name="description" content="ReviewForge reviews GitHub pull requests with OpenAI, Anthropic, or Gemini, posting line-level comments tagged critical, warning, or suggestion, plus a verdict and confidence score. GitHub Action or standalone CLI. By AxeForge.">
+<meta property="og:title" content="ReviewForge — AI code review with personality">
+<meta property="og:description" content="Line-level AI PR review with reviewer personas, multilingual output, and learning reports. Multi-provider: OpenAI, Anthropic, Gemini.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://axeforging.github.io/reviewforge/">
+<meta property="og:image" content="https://axeforging.github.io/reviewforge/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ReviewForge — AI code review with personality">
+<meta name="twitter:description" content="Line-level AI PR review with reviewer personas, multilingual output, and learning reports.">
+<meta name="twitter:image" content="https://axeforging.github.io/reviewforge/og-image.jpg">
+<link rel="canonical" href="https://axeforging.github.io/reviewforge/">
+<link rel="icon" href="./favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="./favicon.png">
+<link rel="stylesheet" href="./axeforge.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "ReviewForge",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Linux, macOS, Windows",
+  "description": "AI-powered code reviewer with personality. Reviews GitHub pull requests using OpenAI, Anthropic, or Gemini, posting line-level comments with severity levels and review verdicts. Supports reviewer personas, multilingual output, and learning reports.",
+  "url": "https://axeforging.github.io/reviewforge/",
+  "author": { "@type": "Organization", "name": "AxeForge", "url": "https://axeforge.io" },
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<style>
+  /* AxeForge shell + the relay flavor (external tools) -- see branding/README.md.
+     Fonts/components inherited from the kit deliberately -- same pattern as
+     heyra's, rsvp-m5's, and gumshoe's web/index.html, reused here rather than
+     re-derived. */
+
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  a { color: inherit; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 1.5rem; }
+
+  /* ---- Topbar ---- */
+  .topbar {
+    padding: 0;
+    min-height: 68px;
+    border-bottom: 1px solid var(--af-line);
+    background: color-mix(in srgb, var(--af-bg) 88%, transparent);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    position: sticky; top: 0; z-index: 40;
+  }
+  .topbar .wrap { display: flex; align-items: center; justify-content: space-between; min-height: 68px; }
+  .topbar-brand { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; font-weight: 700; }
+  .topbar-brand img { height: 24px; width: 24px; }
+  .topbar-brand .sep { color: var(--af-text-muted); font-weight: 400; margin: 0 0.15rem; }
+  .topbar-brand .forge { color: var(--af-accent); }
+  .topbar-nav { display: flex; align-items: center; gap: 1.5rem; font-size: 0.9rem; }
+  .topbar-nav a.navlink { color: var(--af-text-muted); text-decoration: none; }
+  .topbar-nav a.navlink:hover { color: var(--af-text); }
+
+  /* ---- Hero: asymmetric two-column ---- */
+  .hero {
+    background-image: radial-gradient(circle, var(--af-line) 1px, transparent 1px);
+    background-size: 32px 32px;
+    background-position: -8px -8px;
+    border-bottom: 1px solid var(--af-line);
+  }
+  .hero .wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+    gap: 3rem;
+    align-items: center;
+    padding-top: 4.5rem;
+    padding-bottom: 4.5rem;
+  }
+  .kicker {
+    font-family: var(--af-font-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--af-accent);
+    margin-bottom: 1rem;
+  }
+  .hero h1 {
+    font-size: clamp(2.1rem, 1.4rem + 2.6vw, 3.1rem);
+    line-height: 1.08;
+    margin: 0 0 1.1rem;
+    letter-spacing: -0.01em;
+  }
+  .hero p.lede {
+    color: var(--af-text-muted);
+    font-size: 1.08rem;
+    line-height: 1.65;
+    max-width: 46ch;
+    margin: 0 0 1.75rem;
+  }
+  .hero .ctas { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+  .btn-ghost {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.75rem 1.4rem; border-radius: var(--af-radius);
+    border: 1px solid var(--af-line); color: var(--af-text);
+    text-decoration: none; font-weight: 600; font-size: 1rem;
+    transition: border-color 0.15s ease;
+  }
+  .btn-ghost:hover { border-color: color-mix(in srgb, var(--af-accent) 50%, transparent); }
+
+  /* ---- Live review demo ---- */
+  .feed-caption { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem; font-size: 0.8rem; color: var(--af-text-muted); }
+  .pulse-dot { position: relative; width: 8px; height: 8px; border-radius: 50%; background: var(--af-accent); flex: none; }
+  .pulse-dot::after {
+    content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--af-accent);
+    animation: pulse 2s ease-out infinite;
+  }
+  @keyframes pulse { 0% { opacity: 0.6; transform: scale(1); } 100% { opacity: 0; transform: scale(2.8); } }
+  #feed-window { box-shadow: 0 30px 60px -20px rgb(0 0 0 / 0.6); max-width: 100%; }
+  #feed-body { min-height: 15.5rem; max-height: 15.5rem; padding: 0.85rem 1rem; overflow: hidden; font-family: var(--af-font-mono); font-size: 0.82rem; }
+  .feed-line {
+    display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; gap: 0.6rem; align-items: baseline;
+    padding: 0.3rem 0; color: var(--af-text-muted);
+    animation: feed-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .feed-line .title { overflow-wrap: break-word; }
+  @keyframes feed-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+  .feed-line .sev { text-transform: uppercase; font-size: 0.72rem; }
+  .feed-line .title { color: var(--af-text); }
+  .feed-line .loc { color: var(--af-text-muted); opacity: 0.75; text-align: right; }
+  .feed-tone { width: 6px; height: 6px; border-radius: 50%; align-self: center; }
+  .feed-tone-info { background: #22d3ee; }
+  .feed-tone-warn { background: #ffb000; }
+  .feed-tone-critical { background: var(--af-accent); box-shadow: 0 0 8px color-mix(in srgb, var(--af-accent) 60%, transparent); }
+  @media (prefers-reduced-motion: reduce) {
+    .feed-line { animation: none; }
+    .pulse-dot::after { animation: none; opacity: 0; }
+  }
+
+  /* ---- Sections ---- */
+  section { padding: 4rem 0; border-top: 1px solid var(--af-line); }
+  .section-head { margin-bottom: 2.25rem; max-width: 60ch; }
+  .kicker-sm { font-family: var(--af-font-mono); font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--af-accent); margin-bottom: 0.5rem; }
+  .section-title { font-size: clamp(1.5rem, 1.3rem + 0.8vw, 1.9rem); margin: 0 0 0.6rem; letter-spacing: -0.005em; }
+  .section-sub { color: var(--af-text-muted); line-height: 1.6; margin: 0; }
+
+  /* ---- Feature grid ---- */
+  .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+  .feature-card { padding: 1.25rem 1.4rem; }
+  .feature-card .tone-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.65rem; }
+  .feature-card h3 { margin: 0; font-size: 1.02rem; }
+  .feature-card p { margin: 0; color: var(--af-text-muted); font-size: 0.92rem; line-height: 1.55; }
+
+  /* ---- Guide: asymmetric numbered flow ---- */
+  .guide-flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; counter-reset: step; }
+  .guide-step { padding: 1.5rem; position: relative; }
+  .guide-step .num { font-family: var(--af-font-mono); font-size: 0.85rem; color: var(--af-accent); margin-bottom: 0.75rem; }
+  .guide-step h3 { margin: 0 0 0.5rem; font-size: 1.05rem; }
+  .guide-step p { margin: 0; color: var(--af-text-muted); font-size: 0.93rem; line-height: 1.6; }
+  .guide-step code { font-family: var(--af-font-mono); background: var(--af-surface); padding: 0.15em 0.45em; border-radius: 4px; font-size: 0.85em; }
+
+  /* ---- Use cases ---- */
+  .usecase-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1rem; }
+  .usecase-card { padding: 1.25rem 1.4rem; min-width: 0; }
+  .usecase-card h3 { margin: 0 0 0.5rem; font-size: 1rem; }
+  .usecase-card p { margin: 0; color: var(--af-text-muted); font-size: 0.9rem; line-height: 1.55; }
+  .usecase-card code { font-family: var(--af-font-mono); background: var(--af-surface); padding: 0.15em 0.4em; border-radius: 4px; font-size: 0.82em; display: inline-block; max-width: 100%; margin-top: 0.4rem; overflow-wrap: break-word; }
+
+  /* ---- Personas table ---- */
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 0.65rem 0.9rem; border-bottom: 1px solid var(--af-line); }
+  th { color: var(--af-text-muted); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--af-font-mono); }
+  td:last-child { color: var(--af-text-muted); }
+  code { font-family: var(--af-font-mono); background: var(--af-surface); padding: 0.15em 0.45em; border-radius: 4px; font-size: 0.9em; }
+
+  /* ---- Install ---- */
+  .install-steps { counter-reset: install; display: flex; flex-direction: column; gap: 0.9rem; max-width: 56ch; margin: 0 0 1.75rem; }
+  .install-step { display: flex; gap: 0.9rem; align-items: flex-start; }
+  .install-step > *:last-child { min-width: 0; }
+  .install-step .n {
+    counter-increment: install; flex: none; width: 1.75rem; height: 1.75rem; border-radius: 50%;
+    border: 1px solid var(--af-line); display: flex; align-items: center; justify-content: center;
+    font-family: var(--af-font-mono); font-size: 0.8rem; color: var(--af-accent);
+  }
+  .install-step .n::before { content: counter(install); }
+  .install-step p { margin: 0; color: var(--af-text-muted); line-height: 1.55; }
+  .install-step p strong { color: var(--af-text); }
+  .install-step pre { margin: 0.5rem 0 0; overflow-x: auto; }
+  .install-step pre code { white-space: pre; }
+
+  footer { padding: 3rem 0 4rem; text-align: center; color: var(--af-text-muted); font-size: 0.9rem; }
+  footer a { text-decoration: underline; text-decoration-color: var(--af-line); text-underline-offset: 3px; }
+
+  @media (max-width: 820px) {
+    .hero .wrap { grid-template-columns: 1fr; padding-top: 3rem; padding-bottom: 3rem; }
+    .topbar-nav a[href^="#"] { display: none; }
+    .topbar-nav { gap: 0.75rem; }
+  }
+  @media (max-width: 480px) {
+    .topbar .wrap { flex-wrap: wrap; row-gap: 0.6rem; padding-top: 0.75rem; padding-bottom: 0.75rem; min-height: 0; }
+    .topbar { min-height: 0; }
+    .feed-line { grid-template-columns: auto auto minmax(0, 1fr); }
+    .feed-line .loc { display: none; }
+  }
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap">
+      <a class="topbar-brand" href="https://tools.axeforge.io">
+        <img src="./axeforge-icon.png" alt="">
+        <span>Axe<span class="forge">Forge</span><span class="sep">/</span>reviewforge</span>
+      </a>
+      <nav class="topbar-nav">
+        <a class="navlink" href="#capabilities">Capabilities</a>
+        <a class="navlink" href="#personas">Personas</a>
+        <a class="navlink" href="#usecases">Use cases</a>
+        <a class="axe-button" href="https://github.com/AxeForging/reviewforge">View on GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <div class="kicker">AI code reviewer with personality</div>
+        <h1>Review comments that land on the exact line that earned them.</h1>
+        <p class="lede">
+          ReviewForge reviews GitHub pull requests with OpenAI, Anthropic, or Gemini,
+          posting line-level comments tagged critical, warning, or suggestion, then closes
+          with a verdict and a confidence score. Run it as a GitHub Action on every PR, or
+          from your terminal with the standalone CLI. Add a persona &mdash; Bob, Robert, Maya,
+          Eli, or your own &mdash; for reviews with real personality, in any language you choose.
+        </p>
+        <div class="ctas">
+          <a class="axe-button glow-accent" href="#install">Get started</a>
+          <a class="btn-ghost" href="https://github.com/AxeForging/reviewforge">Source on GitHub</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="feed-caption"><span class="pulse-dot"></span> Live demo (simulated output, not a real PR)</div>
+        <div class="terminal-window" id="feed-window">
+          <div class="terminal-header">
+            <span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span>
+            <span style="margin-left: 0.5rem; color: var(--af-text-muted);">reviewforge review --pr 42 --persona eli --dry-run</span>
+          </div>
+          <div id="feed-body"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="capabilities">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker-sm">How it reviews</div>
+        <h2 class="section-title">Built for signal, not noise</h2>
+        <p class="section-sub">Default review rules keep the AI focused on what actually matters in a PR &mdash; not variable names.</p>
+      </div>
+      <div class="feature-grid">
+        <div class="glass-card feature-card">
+          <div class="tone-row"><span class="feed-tone feed-tone-info"></span><h3>Multi-provider AI</h3></div>
+          <p>OpenAI, Anthropic, or Gemini &mdash; pick the provider, model, and temperature per repo, or per call.</p>
+        </div>
+        <div class="glass-card feature-card">
+          <div class="tone-row"><span class="feed-tone feed-tone-critical"></span><h3>Line-level severity</h3></div>
+          <p>Comments post directly on the diff line, tagged <code>critical</code>, <code>warning</code>, or <code>suggestion</code> &mdash; not buried in one long summary.</p>
+        </div>
+        <div class="glass-card feature-card">
+          <div class="tone-row"><span class="feed-tone feed-tone-warn"></span><h3>Review rules presets</h3></div>
+          <p><code>concise</code> (default) flags only bugs, security, performance, and breaking changes. Switch to <code>thorough</code>, or <code>none</code> to hand the AI full judgment.</p>
+        </div>
+        <div class="glass-card feature-card">
+          <div class="tone-row"><span class="feed-tone feed-tone-info"></span><h3>Verdicts with confidence</h3></div>
+          <p>Every review closes with approve, request changes, or comment &mdash; plus a confidence score, so you know how much to trust it.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="personas">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker-sm">Reviewer personas</div>
+        <h2 class="section-title">Same review, different bedside manner</h2>
+        <p class="section-sub">Built-in personas change the tone, not what gets flagged. Bring your own with <code>--custom-persona</code>.</p>
+      </div>
+      <div class="table-scroll">
+      <table>
+        <tr><th>Persona</th><th>Name</th><th>Style</th></tr>
+        <tr><td><code>bob</code></td><td>Bob Lil Swagger</td><td>Friendly, encouraging. Celebrates good code, suggests improvements warmly, teaches while reviewing.</td></tr>
+        <tr><td><code>robert</code></td><td>Robert Dover Clow</td><td>Nerdy tech expert. Names every pattern spotted, references CS concepts and SOLID principles.</td></tr>
+        <tr><td><code>maya</code></td><td>Maya Simplifica</td><td>Everyday analogies teacher. Explains concepts using cooking, building, gardening and other real-world parallels.</td></tr>
+        <tr><td><code>eli</code></td><td>Eli Passo</td><td>Clear and patient mentor. Simple explanations, avoids jargon, celebrates good decisions, suggests learning paths.</td></tr>
+        <tr><td><em>(empty)</em></td><td>Default</td><td>Standard expert code reviewer. Professional, thorough, no personality overlay.</td></tr>
+      </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="how-it-works">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker-sm">Pipeline</div>
+        <h2 class="section-title">What happens when a PR opens</h2>
+      </div>
+      <div class="guide-flow">
+        <div class="glass-card guide-step">
+          <div class="num">01</div>
+          <h3>Collect the diff</h3>
+          <p>Pulls the PR diff via the GitHub API. Incremental mode reviews only the changes made since the last bot review, so long-lived PRs don't get re-reviewed from scratch.</p>
+        </div>
+        <div class="glass-card guide-step">
+          <div class="num">02</div>
+          <h3>Assemble context</h3>
+          <p>Attaches project context files &mdash; <code>README.md</code> and <code>package.json</code> by default, or any files you set &mdash; plus your review rules preset, so the model reviews with real project knowledge.</p>
+        </div>
+        <div class="glass-card guide-step">
+          <div class="num">03</div>
+          <h3>Review with your provider</h3>
+          <p>Sends it to OpenAI, Anthropic, or Gemini at your chosen model and temperature, optionally filtered through a persona and target language.</p>
+        </div>
+        <div class="glass-card guide-step">
+          <div class="num">04</div>
+          <h3>Post comments &amp; verdict</h3>
+          <p>Line comments land with severity, and a verdict posts with a confidence score. Add <code>--save-report</code> for a JSON learning report.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="usecases">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker-sm">Use cases</div>
+        <h2 class="section-title">Why teams reach for ReviewForge</h2>
+      </div>
+      <div class="usecase-grid">
+        <div class="glass-card usecase-card">
+          <h3>Fast PR triage</h3>
+          <p>Default <code>concise</code> rules skip naming and style nits, surfacing only bugs, security issues, and breaking changes on every PR.</p>
+          <code>reviewforge review --provider openai --model gpt-4 --pr 42 --dry-run</code>
+        </div>
+        <div class="glass-card usecase-card">
+          <h3>One workflow, every repo</h3>
+          <p>A shared reusable workflow lets every repo in the org call the same ReviewForge job with its own provider, persona, and language.</p>
+          <code>uses: your-org/.github/.github/workflows/reviewforge.yml@main</code>
+        </div>
+        <div class="glass-card usecase-card">
+          <h3>Reviews your team can read</h3>
+          <p>Set <code>--language</code> to write comments in Brazilian Portuguese, Spanish, Japanese, or any of 14 supported locales.</p>
+          <code>reviewforge review --language pt-br --persona eli</code>
+        </div>
+        <div class="glass-card usecase-card">
+          <h3>Evidence for 1:1s</h3>
+          <p><code>--save-report</code> writes a JSON file of techniques spotted, what went well, and areas to improve &mdash; per PR, not just review noise.</p>
+          <code>reviewforge review --save-report review-report.json</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker-sm">Install</div>
+        <h2 class="section-title">Two ways to run it</h2>
+      </div>
+      <div class="install-steps">
+        <div class="install-step">
+          <span class="n"></span>
+          <div>
+            <p><strong>Install the CLI</strong></p>
+            <pre class="terminal-window" style="padding: 0.6rem 0.9rem;"><code style="background: none; padding: 0;">go install github.com/AxeForging/reviewforge@latest</code></pre>
+          </div>
+        </div>
+        <div class="install-step">
+          <span class="n"></span>
+          <div>
+            <p><strong>Or drop it into a workflow</strong> &mdash; <code>.github/workflows/code-review.yml</code></p>
+            <pre class="terminal-window" style="padding: 0.6rem 0.9rem;"><code style="background: none; padding: 0;">- uses: AxeForging/reviewforge@main
+  with:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    AI_PROVIDER: openai
+    AI_MODEL: gpt-4
+    AI_API_KEY: ${{ secrets.OPENAI_API_KEY }}</code></pre>
+          </div>
+        </div>
+        <div class="install-step">
+          <span class="n"></span>
+          <p><strong>Try a dry run</strong> &mdash; <code>reviewforge review --provider openai --model gpt-4 --api-key $OPENAI_API_KEY --github-token $GITHUB_TOKEN --repo owner/repo --pr 42 --dry-run</code></p>
+        </div>
+      </div>
+      <a class="axe-button" href="https://github.com/AxeForging/reviewforge">Full instructions on GitHub</a>
+    </div>
+  </section>
+
+  <footer>
+    <p>Built by the <a href="https://github.com/AxeForging">AxeForging</a> team.</p>
+    <p>Check out our other tools at <a href="https://tools.axeforge.io">tools.axeforge.io</a>.</p>
+    <p>More from AxeForge: <a href="https://axeforge.io">AxeForge</a> ·
+       <a href="https://replayraccoon.axeforge.io">ReplayRaccoon</a> ·
+       <a href="https://axeforging.github.io/heyra/">Heyra</a> ·
+       <a href="https://axeforging.github.io/rsvp-m5/">RSVP M5</a> ·
+       <a href="https://axeforging.github.io/gumshoe/">gumshoe</a>.</p>
+  </footer>
+
+<script>
+(function () {
+  var FINDINGS = [
+    { sev: "critical",   tone: "critical", title: "response body never closed on error path",     loc: "helpers/http.go:41" },
+    { sev: "warning",    tone: "warn",     title: "retry loop missing exponential backoff",        loc: "helpers/http.go:88" },
+    { sev: "suggestion", tone: "info",     title: "add context.Context for cancellation",           loc: "helpers/http.go:12" },
+    { sev: "critical",   tone: "critical", title: "retry runs on a non-idempotent POST",             loc: "helpers/http.go:102" },
+    { sev: "warning",    tone: "warn",     title: "error not wrapped with %w, loses call site",      loc: "helpers/http.go:57" },
+    { sev: "suggestion", tone: "info",     title: "builder pattern would simplify client config",    loc: "helpers/http.go:20" }
+  ];
+
+  var body = document.getElementById("feed-body");
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var MAX_LINES = 6;
+  var i = 0;
+
+  function addLine() {
+    var f = FINDINGS[i % FINDINGS.length];
+    i++;
+    var line = document.createElement("div");
+    line.className = "feed-line";
+    line.innerHTML =
+      '<span class="feed-tone feed-tone-' + f.tone + '"></span>' +
+      '<span class="sev" style="color: var(--af-text-muted);">' + f.sev + '</span>' +
+      '<span class="title">' + f.title + '</span>' +
+      '<span class="loc">' + f.loc + '</span>';
+    body.appendChild(line);
+    while (body.children.length > MAX_LINES) {
+      body.removeChild(body.firstChild);
+    }
+  }
+
+  for (var seed = 0; seed < 4; seed++) addLine();
+
+  if (!reduced) {
+    setInterval(addLine, 2400);
+  }
+})();
+</script>
+</body>
+</html>

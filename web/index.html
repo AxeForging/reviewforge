@@ -61,7 +61,9 @@
   .topbar-nav a.navlink { color: var(--af-text-muted); text-decoration: none; }
   .topbar-nav a.navlink:hover { color: var(--af-text); }
 
-  /* ---- Hero: asymmetric two-column ---- */
+  /* ---- Hero: mirrored two-column -- PR thread on the left, copy on the
+     right (every other AxeForge site runs text-left/demo-right; this one
+     flips it, DOM order matches visual order at every breakpoint). ---- */
   .hero {
     background-image: radial-gradient(circle, var(--af-line) 1px, transparent 1px);
     background-size: 32px 32px;
@@ -70,12 +72,14 @@
   }
   .hero .wrap {
     display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
     gap: 3rem;
     align-items: center;
     padding-top: 4.5rem;
     padding-bottom: 4.5rem;
   }
+  .hero-visual { min-width: 0; }
+  .hero-copy { min-width: 0; }
   .kicker {
     font-family: var(--af-font-mono);
     font-size: 0.8rem;
@@ -107,7 +111,8 @@
   }
   .btn-ghost:hover { border-color: color-mix(in srgb, var(--af-accent) 50%, transparent); }
 
-  /* ---- Live review demo ---- */
+  /* ---- Live review demo: shared "simulated" caption + tone dots (still
+     used by the feature grid below). ---- */
   .feed-caption { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem; font-size: 0.8rem; color: var(--af-text-muted); }
   .pulse-dot { position: relative; width: 8px; height: 8px; border-radius: 50%; background: var(--af-accent); flex: none; }
   .pulse-dot::after {
@@ -115,26 +120,71 @@
     animation: pulse 2s ease-out infinite;
   }
   @keyframes pulse { 0% { opacity: 0.6; transform: scale(1); } 100% { opacity: 0; transform: scale(2.8); } }
-  #feed-window { box-shadow: 0 30px 60px -20px rgb(0 0 0 / 0.6); max-width: 100%; }
-  #feed-body { min-height: 15.5rem; max-height: 15.5rem; padding: 0.85rem 1rem; overflow: hidden; font-family: var(--af-font-mono); font-size: 0.82rem; }
-  .feed-line {
-    display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; gap: 0.6rem; align-items: baseline;
-    padding: 0.3rem 0; color: var(--af-text-muted);
-    animation: feed-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .feed-line .title { overflow-wrap: break-word; }
-  @keyframes feed-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
-  .feed-line .sev { text-transform: uppercase; font-size: 0.72rem; }
-  .feed-line .title { color: var(--af-text); }
-  .feed-line .loc { color: var(--af-text-muted); opacity: 0.75; text-align: right; }
   .feed-tone { width: 6px; height: 6px; border-radius: 50%; align-self: center; }
   .feed-tone-info { background: #22d3ee; }
   .feed-tone-warn { background: #ffb000; }
   .feed-tone-critical { background: var(--af-accent); box-shadow: 0 0 8px color-mix(in srgb, var(--af-accent) 60%, transparent); }
   @media (prefers-reduced-motion: reduce) {
-    .feed-line { animation: none; }
     .pulse-dot::after { animation: none; opacity: 0; }
   }
+
+  /* ---- Mock PR review thread (hero centerpiece) ---- */
+  .pr-card {
+    background: var(--af-surface-2);
+    border: 1px solid var(--af-line);
+    border-radius: var(--af-radius-lg);
+    overflow: hidden;
+    box-shadow: 0 30px 60px -20px rgb(0 0 0 / 0.6);
+    max-width: 100%;
+  }
+  .pr-card-head {
+    background: var(--af-surface-3);
+    border-bottom: 1px solid var(--af-line);
+    padding: 0.6rem 1rem;
+    display: flex; align-items: center; gap: 0.6rem; min-width: 0;
+    font-family: var(--af-font-mono); font-size: 0.78rem;
+  }
+  /* pr-card content deliberately does NOT use var(--af-text)/var(--af-text-muted):
+     --af-surface-2/-3 are fixed dark tokens that never change with the page
+     theme (see axeforge.css -- "terminal stays a dark console on a light
+     page"), but --af-text/--af-text-muted flip to near-black in light theme.
+     Pairing those would go invisible on a light-themed page. #fff/#94a3b8 are
+     the shell's own dark-mode text/text-muted values, hardcoded so this card
+     stays legible regardless of <html data-theme>. */
+  .pr-card-head .pr-num { color: var(--af-accent); font-weight: 700; flex: none; }
+  .pr-card-head .pr-title { color: #ffffff; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pr-card-head .pr-file { color: #94a3b8; margin-left: auto; flex: none; }
+
+  .pr-diff { padding: 0.7rem 0; font-family: var(--af-font-mono); font-size: 0.78rem; line-height: 1.7; overflow-x: auto; }
+  .diff-line { display: flex; gap: 0.6rem; padding: 0.05rem 1rem 0.05rem 0.85rem; border-left: 3px solid transparent; color: #94a3b8; white-space: pre; }
+  /* add/del hexes are fixed (not theme tokens) but chosen to clear >=3:1 against
+     both possible surface-2/-3 fills; they only paint a border + a low-alpha
+     wash, never text, so 3:1 (non-text UI component) is the right bar, not
+     4.5:1 -- the +/- glyph carries the actual meaning either way. */
+  .diff-line.diff-add { border-left-color: #16a34a; background: color-mix(in srgb, #16a34a 10%, transparent); color: #ffffff; }
+  .diff-line.diff-del { border-left-color: #dc2626; background: color-mix(in srgb, #dc2626 10%, transparent); color: #ffffff; }
+  .diff-gutter { width: 1ch; flex: none; font-weight: 700; }
+
+  .pr-comments { list-style: none; margin: 0; padding: 0.3rem 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.8rem; border-top: 1px solid var(--af-line); }
+  .pr-comment { display: flex; gap: 0.65rem; align-items: flex-start; }
+  .avatar {
+    flex: none; width: 1.9rem; height: 1.9rem; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--af-font-mono); font-weight: 700; font-size: 0.85rem;
+  }
+  /* bob uses the flavor accent pairing (already audited); robert/maya reuse
+     the fixed cyan/amber tones already established on this page (feed-tone),
+     paired with a fixed dark glyph -- both clear >=11:1, theme-independent
+     since neither the fill nor the text color is theme-reactive. */
+  .avatar-bob { background: var(--af-accent); color: var(--af-accent-contrast); }
+  .avatar-robert { background: #22d3ee; color: #05070a; }
+  .avatar-maya { background: #ffb000; color: #05070a; }
+  .comment-body { min-width: 0; }
+  .comment-head { display: flex; align-items: baseline; gap: 0.4rem; font-size: 0.85rem; margin-bottom: 0.2rem; flex-wrap: wrap; }
+  .comment-head strong { color: #ffffff; }
+  .comment-tag { font-family: var(--af-font-mono); color: #94a3b8; font-size: 0.72rem; }
+  .pr-comment p { margin: 0; color: #94a3b8; font-size: 0.85rem; line-height: 1.55; overflow-wrap: break-word; }
+  .pr-comment code { font-size: 0.82em; color: #e5e7eb; background: color-mix(in srgb, #94a3b8 20%, transparent); }
 
   /* ---- Sections ---- */
   section { padding: 4rem 0; border-top: 1px solid var(--af-line); }
@@ -198,8 +248,7 @@
   @media (max-width: 480px) {
     .topbar .wrap { flex-wrap: wrap; row-gap: 0.6rem; padding-top: 0.75rem; padding-bottom: 0.75rem; min-height: 0; }
     .topbar { min-height: 0; }
-    .feed-line { grid-template-columns: auto auto minmax(0, 1fr); }
-    .feed-line .loc { display: none; }
+    .pr-card-head .pr-file { display: none; }
   }
   .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 </style>
@@ -222,7 +271,49 @@
 
   <section class="hero">
     <div class="wrap">
-      <div>
+      <div class="hero-visual">
+        <div class="feed-caption"><span class="pulse-dot"></span> Simulated review thread &mdash; not a real PR</div>
+        <div class="pr-card">
+          <div class="pr-card-head">
+            <span class="pr-num">#42</span>
+            <span class="pr-title">Add retry logic</span>
+            <span class="pr-file">helpers/http.go</span>
+          </div>
+          <div class="pr-diff">
+            <div class="diff-line"><span class="diff-gutter">&nbsp;</span><span>resp, err := client.Get(url)</span></div>
+            <div class="diff-line diff-del"><span class="diff-gutter">-</span><span>return resp, err</span></div>
+            <div class="diff-line diff-add"><span class="diff-gutter">+</span><span>if err == nil &amp;&amp; resp != nil {</span></div>
+            <div class="diff-line diff-add"><span class="diff-gutter">+</span><span>&nbsp;&nbsp;&nbsp;&nbsp;defer resp.Body.Close()</span></div>
+            <div class="diff-line diff-add"><span class="diff-gutter">+</span><span>}</span></div>
+            <div class="diff-line diff-add"><span class="diff-gutter">+</span><span>return resp, err</span></div>
+          </div>
+          <ul class="pr-comments">
+            <li class="pr-comment">
+              <span class="avatar avatar-bob" aria-hidden="true">B</span>
+              <div class="comment-body">
+                <div class="comment-head"><strong>Bob Lil Swagger</strong> <span class="comment-tag">bob</span></div>
+                <p>Solid retry logic &mdash; nice work. Just add <code>defer resp.Body.Close()</code> so we're not leaking connections on the error path. Small fix, you've got this.</p>
+              </div>
+            </li>
+            <li class="pr-comment">
+              <span class="avatar avatar-robert" aria-hidden="true">R</span>
+              <div class="comment-body">
+                <div class="comment-head"><strong>Robert Dover Clow</strong> <span class="comment-tag">robert</span></div>
+                <p>Retrying a non-idempotent POST without an idempotency key breaks your retry wrapper's single responsibility. A builder would also tame this client config.</p>
+              </div>
+            </li>
+            <li class="pr-comment">
+              <span class="avatar avatar-maya" aria-hidden="true">M</span>
+              <div class="comment-body">
+                <div class="comment-head"><strong>Maya Simplifica</strong> <span class="comment-tag">maya</span></div>
+                <p>Think of the response body like a garden hose left running &mdash; close it with <code>defer</code> right after you're done, or it just keeps flowing after you've walked away.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="hero-copy">
         <div class="kicker">AI code reviewer with personality</div>
         <h1>Review comments that land on the exact line that earned them.</h1>
         <p class="lede">
@@ -235,17 +326,6 @@
         <div class="ctas">
           <a class="axe-button glow-accent" href="#install">Get started</a>
           <a class="btn-ghost" href="https://github.com/AxeForging/reviewforge">Source on GitHub</a>
-        </div>
-      </div>
-
-      <div>
-        <div class="feed-caption"><span class="pulse-dot"></span> Live demo (simulated output, not a real PR)</div>
-        <div class="terminal-window" id="feed-window">
-          <div class="terminal-header">
-            <span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span>
-            <span style="margin-left: 0.5rem; color: var(--af-text-muted);">reviewforge review --pr 42 --persona eli --dry-run</span>
-          </div>
-          <div id="feed-body"></div>
         </div>
       </div>
     </div>
@@ -289,11 +369,11 @@
       <div class="table-scroll">
       <table>
         <tr><th>Persona</th><th>Name</th><th>Style</th></tr>
-        <tr><td><code>bob</code></td><td>Bob Lil Swagger</td><td>Friendly, encouraging. Celebrates good code, suggests improvements warmly, teaches while reviewing.</td></tr>
-        <tr><td><code>robert</code></td><td>Robert Dover Clow</td><td>Nerdy tech expert. Names every pattern spotted, references CS concepts and SOLID principles.</td></tr>
-        <tr><td><code>maya</code></td><td>Maya Simplifica</td><td>Everyday analogies teacher. Explains concepts using cooking, building, gardening and other real-world parallels.</td></tr>
-        <tr><td><code>eli</code></td><td>Eli Passo</td><td>Clear and patient mentor. Simple explanations, avoids jargon, celebrates good decisions, suggests learning paths.</td></tr>
-        <tr><td><em>(empty)</em></td><td>Default</td><td>Standard expert code reviewer. Professional, thorough, no personality overlay.</td></tr>
+        <tr class="persona-row"><td><code>bob</code></td><td>Bob Lil Swagger</td><td>Friendly, encouraging. Celebrates good code, suggests improvements warmly, teaches while reviewing.</td></tr>
+        <tr class="persona-row"><td><code>robert</code></td><td>Robert Dover Clow</td><td>Nerdy tech expert. Names every pattern spotted, references CS concepts and SOLID principles.</td></tr>
+        <tr class="persona-row"><td><code>maya</code></td><td>Maya Simplifica</td><td>Everyday analogies teacher. Explains concepts using cooking, building, gardening and other real-world parallels.</td></tr>
+        <tr class="persona-row"><td><code>eli</code></td><td>Eli Passo</td><td>Clear and patient mentor. Simple explanations, avoids jargon, celebrates good decisions, suggests learning paths.</td></tr>
+        <tr class="persona-row"><td><em>(empty)</em></td><td>Default</td><td>Standard expert code reviewer. Professional, thorough, no personality overlay.</td></tr>
       </table>
       </div>
     </div>
@@ -406,43 +486,106 @@
        <a href="https://axeforging.github.io/gumshoe/">gumshoe</a>.</p>
   </footer>
 
+<script src="https://unpkg.com/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://unpkg.com/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
 <script>
 (function () {
-  var FINDINGS = [
-    { sev: "critical",   tone: "critical", title: "response body never closed on error path",     loc: "helpers/http.go:41" },
-    { sev: "warning",    tone: "warn",     title: "retry loop missing exponential backoff",        loc: "helpers/http.go:88" },
-    { sev: "suggestion", tone: "info",     title: "add context.Context for cancellation",           loc: "helpers/http.go:12" },
-    { sev: "critical",   tone: "critical", title: "retry runs on a non-idempotent POST",             loc: "helpers/http.go:102" },
-    { sev: "warning",    tone: "warn",     title: "error not wrapped with %w, loses call site",      loc: "helpers/http.go:57" },
-    { sev: "suggestion", tone: "info",     title: "builder pattern would simplify client config",    loc: "helpers/http.go:20" }
-  ];
+  // Fails open on purpose: if either CDN script above is blocked/slow,
+  // `gsap`/`ScrollTrigger` stay undefined, this whole IIFE no-ops, and the
+  // page renders exactly as authored in the CSS -- fully visible, no
+  // JS-driven opacity:0 ever gets applied. Nothing below hides content via
+  // inline CSS; hiding only happens inside the "no-preference" branch below,
+  // right before the tween that reveals it.
+  if (typeof gsap === "undefined" || typeof ScrollTrigger === "undefined") return;
 
-  var body = document.getElementById("feed-body");
-  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var MAX_LINES = 6;
-  var i = 0;
+  gsap.registerPlugin(ScrollTrigger);
 
-  function addLine() {
-    var f = FINDINGS[i % FINDINGS.length];
-    i++;
-    var line = document.createElement("div");
-    line.className = "feed-line";
-    line.innerHTML =
-      '<span class="feed-tone feed-tone-' + f.tone + '"></span>' +
-      '<span class="sev" style="color: var(--af-text-muted);">' + f.sev + '</span>' +
-      '<span class="title">' + f.title + '</span>' +
-      '<span class="loc">' + f.loc + '</span>';
-    body.appendChild(line);
-    while (body.children.length > MAX_LINES) {
-      body.removeChild(body.firstChild);
-    }
-  }
+  var mm = gsap.matchMedia();
 
-  for (var seed = 0; seed < 4; seed++) addLine();
+  // ---- Reduced motion: snap every animated target to its final visible
+  // state immediately. No opacity:0, no transforms left applied. ----
+  mm.add("(prefers-reduced-motion: reduce)", function () {
+    gsap.set(
+      [
+        ".hero-copy .kicker", ".hero-copy h1", ".hero-copy p.lede", ".hero-copy .ctas",
+        ".hero-visual", ".diff-line", ".pr-comment", ".pr-comment .avatar", ".pr-comment p",
+        ".section-head", ".feature-card", ".persona-row", ".guide-step", ".usecase-card", ".install-step"
+      ],
+      { clearProps: "opacity,transform,clipPath" }
+    );
+  });
 
-  if (!reduced) {
-    setInterval(addLine, 2400);
-  }
+  // ---- Full motion path ----
+  mm.add("(prefers-reduced-motion: no-preference)", function () {
+
+    // 1) Hero entrance: kicker -> h1 -> lede -> ctas -> centerpiece shell,
+    //    then the PR thread streams in on top of that same timeline: diff
+    //    lines quickly, then the three reviewer comments one at a time like
+    //    a live review arriving -- slide up + a typing-style clip reveal on
+    //    the paragraph, with the avatar popping in alongside each one.
+    var diffLines = gsap.utils.toArray(".diff-line");
+    var comments = gsap.utils.toArray(".pr-comment");
+
+    gsap.set(".hero-copy .kicker, .hero-copy h1, .hero-copy p.lede, .hero-copy .ctas", { opacity: 0, y: 20 });
+    gsap.set(".hero-visual", { opacity: 0, y: 20 });
+    gsap.set(diffLines, { opacity: 0, x: -14 });
+    gsap.set(comments, { opacity: 0, y: 14 });
+    comments.forEach(function (c) {
+      var avatar = c.querySelector(".avatar");
+      var p = c.querySelector("p");
+      if (avatar) gsap.set(avatar, { scale: 0.5, transformOrigin: "50% 50%" });
+      if (p) gsap.set(p, { clipPath: "inset(0 100% 0 0)" });
+    });
+
+    var hero = gsap.timeline({ defaults: { ease: "power3.out", duration: 0.7 } });
+    hero
+      .to(".hero-copy .kicker", { opacity: 1, y: 0 })
+      .to(".hero-copy h1", { opacity: 1, y: 0 }, "-=0.45")
+      .to(".hero-copy p.lede", { opacity: 1, y: 0 }, "-=0.45")
+      .to(".hero-copy .ctas", { opacity: 1, y: 0 }, "-=0.4")
+      .to(".hero-visual", { opacity: 1, y: 0, duration: 0.8 }, "-=0.35")
+      .to(diffLines, { opacity: 1, x: 0, duration: 0.32, stagger: 0.09, ease: "power2.out" }, "-=0.35");
+
+    comments.forEach(function (c, idx) {
+      var avatar = c.querySelector(".avatar");
+      var p = c.querySelector("p");
+      var pos = idx === 0 ? "-=0.05" : "+=0.18";
+      hero.to(c, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, pos);
+      if (avatar) hero.to(avatar, { scale: 1, duration: 0.4, ease: "back.out(2.2)" }, "<");
+      if (p) hero.to(p, { clipPath: "inset(0 0% 0 0)", duration: 0.55, ease: "power1.out" }, "<+0.05");
+    });
+
+    // 2) Scroll-triggered section reveals: section head fades in, then its
+    //    cards stagger in underneath -- once per section, never replayed.
+    var sections = [
+      { sel: "#capabilities", cards: ".feature-card" },
+      { sel: "#personas", cards: ".persona-row" },
+      { sel: "#how-it-works", cards: ".guide-step" },
+      { sel: "#usecases", cards: ".usecase-card" },
+      { sel: "#install", cards: ".install-step" }
+    ];
+
+    sections.forEach(function (s) {
+      var section = document.querySelector(s.sel);
+      if (!section) return;
+      var head = section.querySelector(".section-head");
+      var cards = gsap.utils.toArray(s.sel + " " + s.cards);
+
+      if (head) gsap.set(head, { opacity: 0, y: 18 });
+      gsap.set(cards, { opacity: 0, y: 22 });
+
+      ScrollTrigger.create({
+        trigger: section,
+        start: "top 78%",
+        once: true,
+        onEnter: function () {
+          var tl = gsap.timeline({ defaults: { ease: "power2.out" } });
+          if (head) tl.to(head, { opacity: 1, y: 0, duration: 0.55 });
+          tl.to(cards, { opacity: 1, y: 0, duration: 0.55, stagger: 0.09 }, head ? "-=0.3" : 0);
+        }
+      });
+    });
+  });
 })();
 </script>
 </body>

@@ -1,0 +1,31 @@
+# ReviewForge
+
+> AI-powered code reviewer with personality — reviews GitHub pull requests with OpenAI, Anthropic, or Gemini.
+
+ReviewForge reviews GitHub pull requests using AI, posting line-level comments tagged by severity (critical, warning, suggestion) along with a review verdict (approve, request changes, or comment) and a confidence score. It runs as a GitHub Action or a standalone CLI, and supports reviewer personas, multilingual output, and learning reports for developer growth.
+
+## What it does
+
+- **Multi-provider AI**: OpenAI, Anthropic, or Gemini, selectable per repo or per call
+- **Line-level comments**: precise feedback tied to specific lines, tagged critical/warning/suggestion
+- **Review verdicts**: approve, request changes, or comment, each with a confidence score
+- **Incremental reviews**: only review changes made since the bot's last review (on by default)
+- **Reviewer personas**: built-in personalities (Bob, Robert, Maya, Eli) or a custom persona via JSON
+- **Multilingual reviews**: comments written in any language via `--language` (e.g. `pt-br`, `es`, `ja`)
+- **Learning reports**: JSON reports capturing techniques spotted, what went well, and areas to improve
+- **Review rules presets**: `concise` (bugs/security/performance/breaking changes only, default), `thorough`, `none`, or fully custom rules
+
+## Ways to run it
+
+- **GitHub Action**: `AxeForging/reviewforge@main` on `pull_request` events, or a shared reusable workflow across many repos
+- **Standalone CLI**: `go install github.com/AxeForging/reviewforge@latest`, with a `--dry-run` mode to preview a review without posting to GitHub
+
+## Configuration
+
+Provider, model, persona, language, comment limits, file-exclude globs, and review-rules preset are all configurable as GitHub Action inputs or CLI flags — see the README for the full inputs table. Custom review rules can override the built-in presets entirely, inline or from a file.
+
+## Contact & links
+
+- Repository: https://github.com/AxeForging/reviewforge
+- Website: https://axeforging.github.io/reviewforge/
+- License: MIT
